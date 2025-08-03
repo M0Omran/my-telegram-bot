@@ -1,0 +1,677 @@
+[2025-08-02 03:04:09] - M: مشكله اعداد الطريق و يجب اولا النظر ال ضبط الوقت في LSBالمسؤله عن تلك المنطقه
+[2025-08-02 03:14:02] - M: Hi CCCOORD team,
+
+A new Service Request has been created for you.
+
+Service Request
+
+172738
+
+No#
+
+Summary
+
+no faults alarm appeared on SMO
+
+Assignment date
+
+7/31/25 9:00 AM
+
+Target Finish Date
+
+7/31/25 9:00 PM
+
+2
+
+Priority
+
+(1 Serious/2 Major /3 Minor)
+
+Location
+
+L3\ATA\TKL\SMO\CC\SMOS -1
+
+18
+
+Location
+
+Description
+
+Line 3\ATTABA Station Ticket Level\Station Master Office\Centralized
+
+Start 9:05
+
+End 9:15
+
+Switch user
+
+٠٩:١٩
+[2025-08-02 03:16:43] - M: Service Request
+
+172656
+
+No#
+
+Summary
+
+power workstation no.1 is disconnected
+
+Assignment date
+
+7/30/25 8:26 PM
+
+24
+
+Target Finish Date
+
+7/31/25 12:26 AM
+
+Priority (1 Serious/2 Major /3 Minor)
+
+1
+
+000
+
+Location
+
+L3\ATA\SUND\PCP\CC\PWS1-
+
+1
+
+Location
+
+Description
+
+Line 3\ATTABA Station\Second Underground Level\Power Control Point\Centralized Control\Power Workstation 1-1 Hardware (PHASE1)
+
++
+
+X
+
+٢٠٠٤٦
+
+تم فحص العطل وتم
+
+restart server الانتهاء
+
+Start 8:35
+
+END 8:41
+
+مندوب الستوم أحمد ممدوح
+
+٢٠٠٤٦
+[2025-08-02 03:17:39] - M: Service Request
+
+172631
+
+No#
+
+Summary
+
+DOOs is hidden in ABA LSB workstation
+
+Assignment date
+
+7/30/25 5:55 PM
+
+Target Finish Date
+
+7/31/25 5:55 AM
+
+Priority (1 Serious/2 2 Major /3 Minor)
+
+DO
+
+Location
+
+L3\ABA\TKL\LSB\CC\LATSS
+
+Location
+
+Line 3\ABBASIA Station\Ticket
+
+Description
+
+Level\Local Signal Box Room Centralized Control\LATS Server
+
+Done
+
+Solution method:
+
+Restart agency
+
+Start: 05:05 PM
+
+End: 05:12 PM
+
+Alstom representative: M Hassan
+
+١٧:٥٩
+[2025-08-02 03:19:02] - M: Service Request
+
+172444
+
+No#
+
+Summary
+
+LSB workstation unknown status (blue indication)
+
+Assignment date
+
+7/29/25 7:52 PM
+
+Target Finish Date
+
+7/29/25 11:52 PM
+
+Priority (1 Serious/1 2 Major /3 Minor)
+
+Location
+
+L3\ABA\TKL\LSB\CC\LATSS
+
+Location
+
+Description
+
+Line 3\ABBASIA Station\Ticket Level\Local Signal Box Room\Centralized Control\LATS Server
+
+Done
+
+Solution method:
+
+Restart Service
+
+Start: 07:40 PM
+
+End: 07:50 PM
+
+Alstom representative: Osama
+
+١٩:٥٧
+[2025-08-02 03:20:26] - M: کریم محسن التحكم RAT تم الانتهاء وزال العطل الخاص بي
+
+00
+
+SR 172389
+
+switch user تم عمل
+
+000
+
+Start 13:30
+
+End 13:40
+
+مندوب الستوم محمد فؤاد
+
++
+
+X
+
+تم تعديلها ١٣:٥٠
+
+کریم محسن التحكم RAT
+
+کریم محسن التحكم RAT تم الانتهاء وزال العطل الخاص
+
+بي
+
+SR 172389 ...
+
+Service Request No#
+
+172389
+
+Summary
+
+Power workstation no.1
+
+Assignment date
+
+disconnected
+
+Target Finish Date
+
+7/29/25 1:57 PM
+
+Priority (1 Serious/2 Major /3 Minor)
+
+2
+
+7/30/25 1:57 AM
+
+Location
+
+L3\ATA\SUND\PCP\CC\PWSS1-4
+
+Location Description Line 3\ATTABA Station\Second Underground Level\Power Control
+[2025-08-02 03:21:25] - M: تامر تحکم RAT
+
+Service Request
+
+172206
+
+No#
+
+Summary
+
+Dynamic display missing data along the line
+
+Assignment date
+
+7/28/25 2:04 PM
+
+Target Finish Date
+
+7/28/25 6:04 PM
+
+Priority (1 Serious/ 1 2 Major /3 Minor)
+
+Location
+
+L3\ATA\SUND\CCP\CC\ATSS1-4
+
+Location
+
+Description
+
+Line 3\ATTABA Station\Second Underground Level\Central Control Point\Centralized Control\ATS server 1 Software (PHASE3C)
+
+تم ابلاغ الستوم وتم زوال
+
+Start MT العطل
+
+02:14
+
+02:19
+
+مندوب الستوم محمد
+
+فؤاد
+
+C
+
+١٤:٣٤
+[2025-08-02 03:24:10] - M: Service Request No#
+
+172106
+
+Summary
+
+Change broken glass of ECO 1104
+
+Assignment date
+
+7/27/25 11:22 PM
+
+Target Finish Date
+
+7/28/25 11:22 AM
+
+Priority (1 Serious/2 Major /3 Minor)
+
+2
+
+Location
+
+L3\BOH\CC\ECOL
+
+Location Description
+
+Line 3\EL BOHY Station\Centralized Control\ECO Loop
+
+٢٣:٢٤
+تم التاشير بالعمل ليلا و تم العمل ليلا و تغير الزجاج
+[2025-08-02 03:24:33] - M: كرم سعد التحكم RAT CC
+
+Service Request No#
+
+171274
+
+Summary
+
+RTU disconnected (Traction sector 1000 blue indication)
+
+Assignment date
+
+7/22/25 9:42 PM
+
+Target Finish Date
+
+7/23/25 1:42 AM
+
+1
+
+Priority (1 Serious/ 2 Major /3 Minor)
+
+Location
+
+L3\IMB\TKL\LCR\CC\RTUC
+
+Location Description
+
+Line 3\IMBABA Station\Ticket Hall Level\Low Current Technical Room\Centralized Control\Remote Transmission Unit Cabinet
+
+Start 9:50
+
+End 10:00
+
+Restart RTU
+
+By Ahmed Khaled
+[2025-08-02 03:27:12] - M: ایاد تحکم Rat
+
+Service Request
+
+171198
+
+000
+
+No#
+
+Summary
+
+LSB Workstation Screen is Hanging
+
+Assignment date
+
+7/22/25 3:14 PM
+
+Target Finish Date
+
+7/23/25 3:14 AM
+
+Priority (1 Serious/2 Major /3 Minor)
+
+2
+
+שר
+
+Location
+
+L3\ADM\TKL\LSB\CC\LATSS
+
+Location
+
+Description
+
+Line 3\ADLY MANSOUR Station\Ticket Level\Local Signal Box\Centralized Control\LATS Server
+
+تم الدخول للعمل ع العطل من قبل مندوب الستوم: م. احمد خالد وتم غلق التأشيره بزوال العطل دون أي ملاحظات.
+تم عمل restart hmi
+Start: 06:85 PM
+
+End: 07:10 PM
+[2025-08-02 03:27:34] - M: كرم سعد التحكم RAT CC
+
+Service Request No#
+
+170310
+
+Summary
+
+SMO workstation server hanging
+
+Assignment date
+
+7/18/25 5:03 AM
+
+Target Finish Date
+
+7/18/25 9:03 AM
+
+1
+
+Priority (1 Serious/ 2 Major /3 Minor)
+
+L3\SUD\TKL\SMO\CC\SMOS
+
+Location
+
+Line 3\SUDAN Station\Ticket Hall Level Station
+
+Location Description
+
+Master Office\Centralized Control\SMO Server
+
+Start 05:08
+
+End 05:22
+
+Restart Service
+
+Alstom
+
+Representative :-
+
+8
+
+G
+
+Mohamed Fouad
+
+٠٥٠٢٥
+[2025-08-02 03:27:55] - M: كرم سعد التحكم RAT CC
+
+Service Request No#
+
+170310
+
+Summary
+
+SMO workstation server hanging
+
+Assignment date
+
+7/18/25 5:03 AM
+
+Target Finish Date
+
+7/18/25 9:03 AM
+
+1
+
+Priority (1 Serious/ 2 Major /3 Minor)
+
+L3\SUD\TKL\SMO\CC\SMOS
+
+Location
+
+Line 3\SUDAN Station\Ticket Hall Level Station
+
+Location Description
+
+Master Office\Centralized Control\SMO Server
+
+Start 05:08
+
+End 05:22
+
+Restart Service
+
+Alstom
+
+Representative :-
+
+8
+
+G
+
+Mohamed Fouad
+
+٠٥٠٢٥
+[2025-08-02 03:28:49] - M: محمد سلیم تحكم RATP تم تغير اللون الاسود في
+
+طابعه PCP بي 170221 SR
+
+A
+
+Start 14.28
+
+End 14.37
+
+8
+
+X
+
+١٤:٣٨
+
+D
+[2025-08-02 03:29:45] - M: اثناء اعمال الصيانة أمس بمحطة (Hel) وجد أن
+
+HDD N.1 NOT WORKING POWER
+
+و غیر مثبت جيدا مع وجود ALARM كما هو موضح في الفيديو.. .
+
+٢٣:٠٦
+[2025-08-02 03:31:08] - M: كريم محسن التحكم RAT
+
+Service Request No#
+
+169460
+
+Summary
+
+FEP ATC Red Frame apparing on CCP workstation
+
+Assignment date
+
+7/13/25 7:09 PM
+
+Target Finish Date
+
+7/13/25 11:09 PM
+
+1
+
+Priority (1 Serious/2 Major /3 Minor)
+
+U
+
+Location
+
+L3\HIB\TKL\LCR\CC\LATSC-1\FEPS1-1
+
+Location Description
+
+Line 3\HISHAM BARAKAT Station Ticket Level\Low Current Technical Room\Centralized Control\LATS Cabinet-1\Front End Processor Server 1-1
+
+بعد الفحص مطلوب العمل ليلاً مندوب الستوم اسامه رضا
+و تم الفحص ليلا و عمل restart feb services و زال العطل 
+
+Start 20:19
+
+End 20:35
+
+٢٠:٤٣
+[2025-08-02 04:33:53] - M: مشكله اعداد الطريق
+[2025-08-02 08:46:34] - M: Service Request No#
+
+173070
+
+Summary
+
+COC Workstation (Scada) disconnected at CCP
+
+Assignment date
+
+8/2/25 7:01 AM
+
+Target Finish Date
+
+8/2/25 7:01 PM
+
+Priority
+
+2
+
+(1 Serious/2 Major /3 Minor)
+
+Location
+
+L3\ATA\SUND\CCP\CC\COC\COCWSS
+
+-1
+
+Location
+
+Line 3\ATTABA Station\Second
+
+Description
+
+Underground Level\Central Control
+
+Point\Centralized
+
+Control\Communication
+
+Center\Communication Center
+
+Workstation Software (PHASE3A)
+،solve by restart workstation
+[2025-08-02 08:49:57] - M: 2
+
+Service Request
+
+167269
+
+No#
+
+Summary
+
+WLSB workstation is not working
+
+Assignment date
+
+7/1/25 3:07 AM
+
+Target Finish
+
+7/1/25 7:07 AM
+
+1
+
+Date
+
+Priority
+
+(1 Serious/
+
+2 Major /3 Minor)
+
+Location
+
+L3\WSM\BLD13\SMO\CC\SMOS
+
+-1
+
+Location
+
+Line 3\Al Salam Depot\Ticket
+
+Description
+
+Level\Station Master Office\Centralized Control\SMO
+
+Server-1
+
+SR \ 167269
+
+2:25 START
+
+3:03 END
+
+Action reconnect Ethernet cable & Restart Hmi
+
+00
+
+C
+
+Alstom Eng Waeel
+
+۰۳:۰۹
+
+O

@@ -10,12 +10,12 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 # --- مكتبة جوجل ---
 import google.generativeai as genai
 
-# --- الإعدادات الرئيسية (المفاتيح مكتوبة مباشرة هنا) ---
+# --- الإعدادات الرئيسية ---
 
-# مفتاح التليجرام الخاص بك
+# !! هام: استبدل ++++ بالـ Token الخاص ببوتك
 TELEGRAM_TOKEN = "7986947716:AAHo-wdAuVo7LLGo21s-B6Cedowe3agevwc" 
 
-# مفتاح Gemini API الجديد والصحيح
+# !! هام: استبدل ++++ بمفتاح Gemini API الصحيح
 GEMINI_API_KEY = "AIzaSyAWbEECTpbWSaODdFWwiAY4hpmoraiJZWA"
 
 # اسم ملف قاعدة المعرفة
@@ -42,8 +42,8 @@ except Exception as e:
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا البوت zekoo (الإصدار النهائي).\n"
-        f"لتخزين معلومة جديدة، أرسل رسالة.\n"
+        f"مرحباً {user.mention_html()}! أنا البوت zekoo.\n"
+        f"لتخزين معلومة، أرسل رسالة.\n"
         f"للبحث، استخدم: /search ثم وصف المشكلة."
     )
 
@@ -63,53 +63,57 @@ async def store_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         await update.message.reply_text("عذراً، خطأ في حفظ المعلومة.")
 
 async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # --- التعديل الأول: الحصول على اسم المستخدم ---
+    user_name = update.message.from_user.first_name
+
     search_terms = context.args
     if not search_terms:
         await update.message.reply_text("مثال: /search مشكلة انقطاع الانترنت")
         return
 
     search_query = " ".join(search_terms)
-    print(f"بدء البحث عن: {search_query}")
-    await update.message.reply_text(f"جاري البحث والتفكير (باستخدام Gemini) في حل لمشكلة: '{search_query}'...")
+    print(f"بدء البحث عن: {search_query} بواسطة {user_name}")
+    await update.message.reply_text(f"جاري البحث والتفكير في حل لمشكلة: '{search_query}'...")
 
     try:
         with open(KNOWLEDGE_BASE_FILE, "r", encoding="utf-8") as f:
             lines = f.readlines()
     except FileNotFoundError:
-        # سنقوم بإنشاء الملف إذا لم يكن موجوداً
-        with open(KNOWLEDGE_BASE_FILE, "w", encoding="utf-8") as f:
-            pass
-        await update.message.reply_text("قاعدة المعرفة كانت فارغة، تم إنشاؤها الآن. قم بإضافة بعض المعلومات أولاً.")
+        await update.message.reply_text("قاعدة المعرفة فارغة.")
         return
 
     search_keywords = search_query.lower().split()
     results = [line.strip() for line in lines if any(keyword in line.lower() for keyword in search_keywords)]
     
     if not results:
-        await update.message.reply_text(f"عذراً، لم أجد أي معلومات أولية متعلقة بـ '{search_query}'.")
+        await update.message.reply_text(f"عذراً، لم أجد معلومات أولية متعلقة بـ '{search_query}'.")
         return
 
     context_for_ai = "\n".join(results[:15])
 
+    # --- التعديل الثاني: تحديث الـ prompt بالعبارة التمهيدية الجديدة ---
     prompt = f"""
-    أنت خبير فني موجز ومباشر. مهمتك هي إعطاء الحلول في أقل عدد ممكن من الكلمات.
-    زميلك يسأل عن المشكلة التالية: "{search_query}"
+    أنت مهندس خبير ومساعد تقني. مهمتك هي تحليل البيانات المتوفرة من تجارب سابقة وتحويلها إلى دليل خطوات واضح لحل المشاكل.
+    زميلك، واسمه "{user_name}"، يسأل عن المشكلة التالية: "{search_query}"
 
     وهذه هي البيانات والخبرات السابقة التي وجدتها في قاعدة المعرفة المتعلقة بالمشكلة:
     ---
     {context_for_ai}
     ---
 
-    بناءً على ما سبق، قم بالآتي:
-    1.  حلل المشكلة والبيانات بسرعة.
-    2.  استخلص الحل الأكثر فعالية وأهمية.
-    3.  **قدم الحل في جملتين على الأكثر، أو في نقطتين رئيسيتين كحد أقصى.**
-    4.  **تجنب الشرح المطول والتفاصيل غير الضرورية. كن مباشراً جداً.**
+    بناءً على ما سبق، قم بالآتي بدقة:
+    1.  اقرأ كل البيانات السابقة وحللها بعمق.
+    2.  استخلص كل الحلول والإجراءات المقترحة من البيانات.
+    3.  قم بدمج الأفكار المتشابهة وتجاهل المعلومات غير المهمة.
+    4.  **ابدأ إجابتك بالعبارة التمهيدية التالية بالضبط: "أهلاً بك يا {user_name}، سوف نحاول حل العطل معاً. بناءً على تحليل البيانات، إليك الخطوات المقترحة:"**
+    5.  **بعد العبارة التمهيدية، قم بتنظيم الخلاصة النهائية على هيئة قائمة خطوات مرقمة وواضحة (1, 2, 3...).**
+    6.  يجب أن تكون كل خطوة عملية ومباشرة. (مثال: "1. قم بفحص كابلات الشبكة.")
+    7.  إذا كانت البيانات تشير إلى عدة حلول محتملة، قم بترتيبها في القائمة حسب الأهمية أو الأولوية.
     """
 
     print("إرسال الطلب إلى Gemini للتحليل...")
     if not model:
-        await update.message.reply_text("عذراً، خدمة الذكاء الاصطناعي Gemini غير متاحة بسبب خطأ في الإعداد.")
+        await update.message.reply_text("عذراً، خدمة الذكاء الاصطناعي Gemini غير متاحة.")
         return
         
     try:
@@ -128,18 +132,11 @@ async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     await update.message.reply_text(ai_response)
 
 def main() -> None:
-    """بدء تشغيل البوت."""
-    if not model:
-        print("لا يمكن تشغيل البوت بسبب فشل إعداد النموذج.")
-        return
-            
     application = Application.builder().token(TELEGRAM_TOKEN).build()
-
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("search", search_in_kb))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, store_message))
-
-    print("البوت قيد التشغيل (بمحرك Gemini النهائي)...")
+    print("البوت قيد التشغيل...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":

@@ -12,8 +12,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import google.generativeai as genai
 
 # --- الإعدادات الرئيسية ---
-TELEGRAM_TOKEN = "7986947716:AAHo-wdAuVo7LLGo21s-B6Cedowe3agevwc
-" # استبدل بالتوكن الخاص بك
+TELEGRAM_TOKEN = "7986947716:AAHo-wdAuVo7LLGo21s-B6Cedowe3agevwc" # استبدل بالتوكن الخاص بك
 GEMINI_API_KEY = "AIzaSyAWbEECTpbWSaODdFWwiAY4hpmoraiJZWA" # استبدل بمفتاح Gemini الخاص بك
 
 # --- أسماء الملفات ---

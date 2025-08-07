@@ -12,9 +12,9 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 # --- مكتبة جوجل ---
 import google.generativeai as genai
 
-# --- الإعدادات الرئيسية ---
-TELEGRAM_TOKEN = "++++" # استبدل بالتوكن الخاص بك
-GEMINI_API_KEY = "++++" # استبدل بمفتاح Gemini الخاص بك
+# --- الإعدادات الرئيسية (معلوماتك الخاصة) ---
+TELEGRAM_TOKEN = "7986947716:AAHo-wdAuVo7LLGo21s-B6Cedowe3agevwc"
+GEMINI_API_KEY = "AIzaSyDP8yA4S8rDSFsYEpzKuDbo-0IDNmZXxYA"
 
 # --- أسماء الملفات ---
 STATIONS_DATA_FILE = "stations_data.json"
@@ -74,8 +74,8 @@ async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAU
 
     data = load_data()
     
-    # تنظيف النص وتحويله إلى أسطر منفصلة
-    lines = [line.strip() for line in text_data.split('\n') if line.strip()]
+    # استخدام تعبير نمطي لفصل الأسطر بشكل أفضل
+    lines = [line.strip() for line in re.split(r'\n', text_data) if line.strip()]
     
     try:
         # السطر الأول يحتوي على معلومات المحطة
@@ -83,14 +83,16 @@ async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAU
         
         # الحالة 1: إضافة محطة جديدة (اسم كامل واختصار)
         if len(first_line_parts) >= 2:
-            full_name = first_line_parts[0]
-            station_key = first_line_parts[1].upper()
+            # نعتبر أن آخر كلمة هي الاختصار وما قبلها هو الاسم الكامل
+            station_key = first_line_parts[-1].upper()
+            full_name = " ".join(first_line_parts[:-1])
             
             if station_key not in data:
                 data[station_key] = {"full_name": full_name, "devices": {}, "history": []}
                 message = f"تم إنشاء محطة جديدة: {full_name} ({station_key}).\n"
             else:
-                message = f"تم العثور على محطة موجودة: {station_key}.\n"
+                data[station_key]["full_name"] = full_name # تحديث الاسم الكامل إذا كانت موجودة
+                message = f"تم تحديث الاسم الكامل لمحطة: {station_key}.\n"
         
         # الحالة 2: تحديث محطة موجودة (اختصار فقط)
         else:
@@ -105,8 +107,9 @@ async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAU
         for line in lines[1:]:
             device_parts = line.split()
             if len(device_parts) >= 2:
+                # نعتبر أن أول كلمة هي اسم الجهاز والباقي هو الـ IP
                 device_name = device_parts[0].upper()
-                ip_address = device_parts[1]
+                ip_address = " ".join(device_parts[1:])
                 data[station_key]["devices"][device_name] = {"ip": ip_address, "status": "غير معروف"}
                 devices_added.append(f"- {device_name}: {ip_address}")
 
@@ -121,7 +124,6 @@ async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAU
 
 
 async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # هذا الكود من الإصدار السابق ويعمل كما هو
     user_name = update.message.from_user.first_name
     natural_text = " ".join(context.args)
     if not natural_text:
@@ -205,7 +207,6 @@ async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # هذا الكود من الإصدار السابق ويعمل كما هو
     user_name = update.message.from_user.first_name
     search_query = " ".join(context.args)
     if not search_query:

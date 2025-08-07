@@ -52,7 +52,7 @@ def save_data(data):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v5.0</b>، مساعدك الذكي.\n\n"
+        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v5.1</b>، مساعدك الذكي.\n\n"
         f"<b>الأوامر الأساسية:</b>\n\n"
         f"<b>لإضافة أو تحديث بيانات محطة/جهاز:</b>\n"
         f"<code>/add [بيانات المحطة أو الجهاز]</code>\n"
@@ -74,16 +74,12 @@ async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAU
 
     data = load_data()
     
-    # استخدام تعبير نمطي لفصل الأسطر بشكل أفضل
     lines = [line.strip() for line in re.split(r'\n', text_data) if line.strip()]
     
     try:
-        # السطر الأول يحتوي على معلومات المحطة
         first_line_parts = lines[0].split()
         
-        # الحالة 1: إضافة محطة جديدة (اسم كامل واختصار)
         if len(first_line_parts) >= 2:
-            # نعتبر أن آخر كلمة هي الاختصار وما قبلها هو الاسم الكامل
             station_key = first_line_parts[-1].upper()
             full_name = " ".join(first_line_parts[:-1])
             
@@ -91,10 +87,9 @@ async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAU
                 data[station_key] = {"full_name": full_name, "devices": {}, "history": []}
                 message = f"تم إنشاء محطة جديدة: {full_name} ({station_key}).\n"
             else:
-                data[station_key]["full_name"] = full_name # تحديث الاسم الكامل إذا كانت موجودة
+                data[station_key]["full_name"] = full_name
                 message = f"تم تحديث الاسم الكامل لمحطة: {station_key}.\n"
         
-        # الحالة 2: تحديث محطة موجودة (اختصار فقط)
         else:
             station_key = first_line_parts[0].upper()
             if station_key not in data:
@@ -102,12 +97,10 @@ async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAU
                 return
             message = f"تحديث بيانات محطة: {station_key}.\n"
 
-        # معالجة الأجهزة في باقي الأسطر
         devices_added = []
         for line in lines[1:]:
             device_parts = line.split()
             if len(device_parts) >= 2:
-                # نعتبر أن أول كلمة هي اسم الجهاز والباقي هو الـ IP
                 device_name = device_parts[0].upper()
                 ip_address = " ".join(device_parts[1:])
                 data[station_key]["devices"][device_name] = {"ip": ip_address, "status": "غير معروف"}
@@ -218,6 +211,7 @@ async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     data = load_data()
     full_context = json.dumps(data, ensure_ascii=False, indent=2)
 
+    # --- Prompt المطور والنهائي ---
     prompt = f"""
     أنت "كبير المهندسين Zekoo"، مساعد تقني خبير ومحلل بيانات. مهمتك هي مساعدة المهندس "{user_name}" في حل مشكلة تقنية.
 
@@ -230,18 +224,19 @@ async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     ```
 
     **مهمتك المطلوبة بدقة:**
-    1.  **تحليل عميق:** اقرأ سؤال المهندس بعناية. ثم ابحث في قاعدة البيانات الكاملة عن أي معلومات ذات صلة.
-    2.  **إيجاد الأعطال المشابهة:** ركز على إيجاد الأعطال السابقة التي تتشابه مع المشكلة الحالية بناءً على **وصف العطل والحلول والكلمات المفتاحية (keywords)**.
-    3.  **صياغة الرد:** قم بصياغة رد احترافي ومنظم.
+    1.  **فهم السؤال:** حلل سؤال المهندس بعناية. حاول تحديد اسم/اختصار المحطة (مثل Rod, ATA) وأسماء الأجهزة (مثل SMO, LSB) المذكورة في السؤال.
+    2.  **استخراج البيانات الفنية:** إذا حددت محطة وجهازاً، **يجب عليك استخراج وعرض البيانات الفنية المتعلقة بهما مباشرة من قاعدة البيانات**. هذا يشمل **عنوان الـ IP** وحالة الجهاز (status). لا تكتفِ بالإشارة إلى وجودها، بل اعرضها.
+    3.  **إيجاد الأعطال المشابهة:** ابحث في سجل الأعطال التاريخي (`history`) عن مشاكل سابقة تتشابه مع المشكلة الحالية بناءً على الوصف والكلمات المفتاحية.
+    4.  **صياغة الرد:** قم بصياغة رد احترافي ومنظم.
 
     **شروط تنسيق الرد النهائي (مهم جداً):**
     *   **الترحيب:** ابدأ ردك بالعبارة التالية بالضبط: "أهلاً بك يا {user_name}، بصفتي كبير المهندسين، قمت بتحليل الموقف وإليك خطة العمل المقترحة:"
     *   **التحليل المبدئي:** في فقرة قصيرة، اذكر تشخيصك المبدئي للمشكلة.
-    *   **الأعطال السابقة ذات الصلة:** إذا وجدت أعطالاً سابقة مشابهة، اذكرها بإيجاز تحت عنوان "**تاريخ الأعطال المشابهة:**".
-    *   **البيانات الفنية:** إذا كان الحل يتطلب معرفة IP أو حالة جهاز، اذكرها تحت عنوان "**البيانات الفنية المطلوبة:**".
+    *   **البيانات الفنية ذات الصلة (الأهم):** تحت عنوان "**البيانات الفنية ذات الصلة:**"، **اعرض بشكل مباشر** أي عناوين IP أو بيانات أخرى وجدتها. مثال: "SMO (Rod): 10.32.109.20".
+    *   **تاريخ الأعطال المشابهة:** إذا وجدت أعطالاً سابقة مشابهة، اذكرها بإيجاز تحت عنوان "**تاريخ الأعطال المشابهة:**".
     *   **خطة العمل:** قدم الحل النهائي على هيئة **خطوات مرقمة وواضحة** تحت عنوان "**خطة العمل المقترحة:**".
 
-    إذا لم تجد أي معلومات مفيدة، اعتذر وقدم نصيحة عامة.
+    إذا لم تجد أي معلومات مفيدة، اعتذر وقدم نصيحة عامة ولكن حاول دائماً تقديم أي معلومة فنية متاحة.
     """
 
     if not model:
@@ -263,11 +258,11 @@ def main() -> None:
     application = Application.builder().token(TELEGRAM_TOKEN).build()
     
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("add", add_or_update_station_data)) # الأمر الجديد
+    application.add_handler(CommandHandler("add", add_or_update_station_data))
     application.add_handler(CommandHandler("log", log_natural_language))
     application.add_handler(CommandHandler("search", search_in_kb))
     
-    print("Zekoo v5.0 (المساعد الذكي) قيد التشغيل...")
+    print("Zekoo v5.1 (المساعد الذكي المطور) قيد التشغيل...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":

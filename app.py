@@ -11,12 +11,9 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 # --- مكتبة جوجل ---
 import google.generativeai as genai
 
-# --- الإعدادات الرئيسية (تم التصحيح) ---
-# تم حذف المسافة بعد ":"
+# --- الإعدادات الرئيسية (تم التحديث النهائي) ---
 TELEGRAM_TOKEN = "7986947716:AAHo-wdAuVo7LLGo21s-B6Cedowe3agevwc"
-
-# تم حذف الحرف الخاطئ ']' من المفتاح. الرجاء التأكد من أنه صحيح.
-GEMINI_API_KEY = "AIzaSyAWbEECTpbWSaODdFWwiAY4hpmoraiZWA"
+GEMINI_API_KEY = "AIzaSyDP8yA4S8rDSFsYEpzKuDbo-0IDNmZXxYA"
 
 # --- أسماء ملفات قواعد البيانات ---
 STATIONS_DATA_FILE = "stations_data.json"
@@ -83,7 +80,7 @@ def save_data(data, file_path):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v4.1</b>، مرشدك التقني التفاعلي.\n\n"
+        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v4.2</b>، مرشدك التقني التفاعلي.\n\n"
         f"<b>الأوامر المتاحة:</b>\n"
         f"<code>/search وصف_المشكلة</code> - للبحث الذكي عن حلول.\n"
         f"<code>/add_fault اسم_المحطة وصف_العطل كلمات_مفتاحية</code> - لتسجيل خبرة جديدة.\n"
@@ -211,7 +208,9 @@ async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         response = await model.generate_content_async(prompt, request_options=request_options)
         ai_response = response.text
     except Exception as e:
-        await update.message.reply_text(f"عذراً، واجهت خطأ أثناء التحليل. الخطأ: {e}")
+        # طباعة الخطأ في سجلات Render لتشخيصه لاحقاً
+        print(f"حدث خطأ من Gemini API: {e}")
+        await update.message.reply_text(f"عذراً، واجهت خطأ أثناء التحليل. يرجى مراجعة سجلات الخادم.")
         return
 
     await update.message.reply_text(ai_response)
@@ -228,7 +227,7 @@ def main() -> None:
     application.add_handler(CommandHandler("update_status", update_status))
     application.add_handler(CommandHandler("search", search_in_kb))
     
-    print("Zekoo v4.1 (المرشد الخبير) قيد التشغيل...")
+    print("Zekoo v4.2 (المرشد الخبير) قيد التشغيل...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":

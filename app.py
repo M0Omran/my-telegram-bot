@@ -13,9 +13,8 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import google.generativeai as genai
 
 # --- الإعدادات الرئيسية ---
-# !!! تأكد من وضع التوكن والمفتاح الصحيحين هنا !!!
-TELEGRAM_TOKEN = "7986947716:AAHo-wdAuVo7LLGo21s-B6Cedowe3agevwc"
-GEMINI_API_KEY = "AIzaSyDP8yA4S8rDSFsYEpzKuDbo-0IDNmZXxYA"
+TELEGRAM_TOKEN = "++++" # استبدل بالتوكن الخاص بك
+GEMINI_API_KEY = "++++" # استبدل بمفتاح Gemini الخاص بك
 
 # --- أسماء الملفات ---
 STATIONS_DATA_FILE = "stations_data.json"
@@ -53,17 +52,76 @@ def save_data(data):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v4.0</b>، مساعدك الذكي.\n\n"
-        f"<b>أنا أفهم اللغة الطبيعية!</b>\n\n"
-        f"<b>لتسجيل أي معلومة (عطل، حل، تحديث):</b>\n"
-        f"استخدم أمر <code>/log</code> ثم اكتب ما تريد باللغة العامية أو الفصحى.\n"
-        f"<b>مثال:</b> <code>/log النهاردة في محطة العتبة، جهاز SMO كان فاصل تماماً. الحل كان تغيير كابل الباور.</code>\n\n"
+        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v5.0</b>، مساعدك الذكي.\n\n"
+        f"<b>الأوامر الأساسية:</b>\n\n"
+        f"<b>لإضافة أو تحديث بيانات محطة/جهاز:</b>\n"
+        f"<code>/add [بيانات المحطة أو الجهاز]</code>\n"
+        f"مثال: <code>/add Heliopolis HEL\nSMO 10.5.1.20</code>\n\n"
+        f"<b>لتسجيل عطل أو معلومة:</b>\n"
+        f"<code>/log [وصف العطل باللغة الطبيعية]</code>\n\n"
         f"<b>للبحث الذكي:</b>\n"
-        f"<code>/search وصف المشكلة</code>"
+        f"<code>/search [وصف المشكلة]</code>"
     )
 
+async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """أمر ذكي لإضافة أو تحديث بيانات المحطات والأجهزة."""
+    text_data = " ".join(context.args)
+    if not text_data:
+        await update.message.reply_text("خطأ: الرجاء إدخال البيانات بعد الأمر /add.")
+        return
+
+    await update.message.reply_text("جاري تحليل البيانات. لحظات من فضلك...")
+
+    data = load_data()
+    
+    # تنظيف النص وتحويله إلى أسطر منفصلة
+    lines = [line.strip() for line in text_data.split('\n') if line.strip()]
+    
+    try:
+        # السطر الأول يحتوي على معلومات المحطة
+        first_line_parts = lines[0].split()
+        
+        # الحالة 1: إضافة محطة جديدة (اسم كامل واختصار)
+        if len(first_line_parts) >= 2:
+            full_name = first_line_parts[0]
+            station_key = first_line_parts[1].upper()
+            
+            if station_key not in data:
+                data[station_key] = {"full_name": full_name, "devices": {}, "history": []}
+                message = f"تم إنشاء محطة جديدة: {full_name} ({station_key}).\n"
+            else:
+                message = f"تم العثور على محطة موجودة: {station_key}.\n"
+        
+        # الحالة 2: تحديث محطة موجودة (اختصار فقط)
+        else:
+            station_key = first_line_parts[0].upper()
+            if station_key not in data:
+                await update.message.reply_text(f"خطأ: المحطة بالاختصار '{station_key}' غير موجودة. لإنشاء محطة جديدة، استخدم الصيغة: /add Full_Name KEY")
+                return
+            message = f"تحديث بيانات محطة: {station_key}.\n"
+
+        # معالجة الأجهزة في باقي الأسطر
+        devices_added = []
+        for line in lines[1:]:
+            device_parts = line.split()
+            if len(device_parts) >= 2:
+                device_name = device_parts[0].upper()
+                ip_address = device_parts[1]
+                data[station_key]["devices"][device_name] = {"ip": ip_address, "status": "غير معروف"}
+                devices_added.append(f"- {device_name}: {ip_address}")
+
+        if devices_added:
+            message += "الأجهزة التي تم إضافتها/تحديثها:\n" + "\n".join(devices_added)
+        
+        save_data(data)
+        await update.message.reply_text(message)
+
+    except Exception as e:
+        await update.message.reply_text(f"حدث خطأ أثناء معالجة البيانات. تأكد من أن التنسيق صحيح.\nالخطأ: {e}")
+
+
 async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """يستخدم الذكاء الاصطناعي لتحليل مدخلات اللغة الطبيعية وتحديث قاعدة البيانات."""
+    # هذا الكود من الإصدار السابق ويعمل كما هو
     user_name = update.message.from_user.first_name
     natural_text = " ".join(context.args)
     if not natural_text:
@@ -81,21 +139,21 @@ async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYP
     **النص المكتوب من المهندس:**
     "{natural_text}"
 
-    **قائمة المحطات الموجودة حالياً في قاعدة البيانات:**
+    **قائمة اختصارات المحطات الموجودة حالياً في قاعدة البيانات:**
     {stations_structure}
 
     **مهمتك المطلوبة:**
     1.  **اقرأ النص بعناية.**
-    2.  **حدد اسم المحطة** التي يتحدث عنها النص. يجب أن يكون الاسم من ضمن قائمة المحطات الموجودة.
+    2.  **حدد اختصار المحطة** التي يتحدث عنها النص. يجب أن يكون الاختصار من ضمن قائمة الاختصارات الموجودة (مثال: "Rod", "ATA", "RIN").
     3.  **استخرج وصفاً دقيقاً للعطل** أو المعلومة.
     4.  **استخرج الحل** إذا تم ذكره في النص.
-    5.  **استخرج كلمات مفتاحية** (keywords) تصف المشكلة (مثل: انقطاع, تهنيج, حرارة, SMO, FEB1).
+    5.  **استخرج كلمات مفتاحية** (keywords) تصف المشكلة (مثل: انقطاع, تهنيج, حرارة, SMO, LSB).
     6.  **قم بإنشاء كائن JSON** يحتوي على هذه المعلومات بالنسق التالي بالضبط. إذا لم تجد معلومة ما، اترك قيمتها فارغة (مثال: "solution": "").
 
     **نسق الـ JSON المطلوب (مهم جداً):**
     ```json
     {{
-      "station_name": "اسم المحطة الذي حددته",
+      "station_key": "اختصار المحطة الذي حددته",
       "fault_description": "وصف العطل الذي استخرجته",
       "solution": "الحل الذي تم اتخاذه (إن وجد)",
       "keywords": ["كلمة1", "كلمة2", "كلمة3"]
@@ -103,7 +161,7 @@ async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYP
     ```
 
     **ملاحظات هامة:**
-    *   إذا لم تستطع تحديد اسم المحطة من النص، أو إذا كانت المحطة غير موجودة في القائمة، يجب أن يكون الرد هو كلمة "Error: Station not found" فقط لا غير.
+    *   إذا لم تستطع تحديد اختصار المحطة من النص، أو إذا كان الاختصار غير موجود في القائمة، يجب أن يكون الرد هو كلمة "Error: Station not found" فقط لا غير.
     *   يجب أن يكون ردك هو كائن الـ JSON فقط، بدون أي نصوص إضافية قبله أو بعده.
     """
 
@@ -116,14 +174,14 @@ async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYP
         cleaned_response = response.text.strip().replace("```json", "").replace("```", "").strip()
         
         if "Error: Station not found" in cleaned_response:
-            await update.message.reply_text(f"عذراً يا {user_name}، لم أستطع تحديد اسم المحطة في رسالتك أو أن المحطة غير مسجلة. الرجاء ذكر اسم المحطة بوضوح (مثال: محطة العتبة).")
+            await update.message.reply_text(f"عذراً يا {user_name}، لم أستطع تحديد اسم المحطة في رسالتك أو أن المحطة غير مسجلة. الرجاء ذكر اختصار المحطة بوضوح (مثال: محطة ATA).")
             return
 
         info_json = json.loads(cleaned_response)
-        station_name = info_json.get("station_name")
+        station_key = info_json.get("station_key")
 
-        if station_name not in data:
-            await update.message.reply_text(f"خطأ: المحطة '{station_name}' التي تم تحديدها غير موجودة في قاعدة البيانات.")
+        if station_key not in data:
+            await update.message.reply_text(f"خطأ: المحطة بالاختصار '{station_key}' التي تم تحديدها غير موجودة في قاعدة البيانات.")
             return
 
         fault_record = {
@@ -134,12 +192,11 @@ async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYP
             "keywords": info_json.get("keywords", [])
         }
 
-        if "history" not in data[station_name]:
-            data[station_name]["history"] = []
+        if "history" not in data[station_key]:
+            data[station_key]["history"] = []
             
-        data[station_name]["history"].append(fault_record)
-        save_data(data)
-        await update.message.reply_text(f"تم تسجيل المعلومة بنجاح في سجل محطة '{station_name}'. شكراً لك!")
+        data[station_key]["history"].append(fault_record)
+        await update.message.reply_text(f"تم تسجيل المعلومة بنجاح في سجل محطة '{station_key}'. شكراً لك!")
 
     except json.JSONDecodeError:
         await update.message.reply_text("عذراً، لم أتمكن من تحليل النص بشكل صحيح. حاول إعادة صياغة الجملة لتكون أوضح.")
@@ -148,6 +205,7 @@ async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    # هذا الكود من الإصدار السابق ويعمل كما هو
     user_name = update.message.from_user.first_name
     search_query = " ".join(context.args)
     if not search_query:
@@ -202,11 +260,13 @@ async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
 
 def main() -> None:
     application = Application.builder().token(TELEGRAM_TOKEN).build()
+    
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("log", log_natural_language)) # الأمر الجديد والذكي
+    application.add_handler(CommandHandler("add", add_or_update_station_data)) # الأمر الجديد
+    application.add_handler(CommandHandler("log", log_natural_language))
     application.add_handler(CommandHandler("search", search_in_kb))
     
-    print("Zekoo v4.0 (المساعد الذكي) قيد التشغيل...")
+    print("Zekoo v5.0 (المساعد الذكي) قيد التشغيل...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":

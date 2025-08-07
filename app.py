@@ -4,6 +4,7 @@ import logging
 import datetime
 import os
 import json
+import re
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
@@ -11,13 +12,13 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 # --- مكتبة جوجل ---
 import google.generativeai as genai
 
-# --- الإعدادات الرئيسية (تم التحديث النهائي) ---
+# --- الإعدادات الرئيسية ---
+# !!! تأكد من وضع التوكن والمفتاح الصحيحين هنا !!!
 TELEGRAM_TOKEN = "7986947716:AAHo-wdAuVo7LLGo21s-B6Cedowe3agevwc"
 GEMINI_API_KEY = "AIzaSyDP8yA4S8rDSFsYEpzKuDbo-0IDNmZXxYA"
 
-# --- أسماء ملفات قواعد البيانات ---
+# --- أسماء الملفات ---
 STATIONS_DATA_FILE = "stations_data.json"
-PROCEDURES_FILE = "procedures.json"
 
 # --- إعدادات التشغيل الأساسية ---
 logging.basicConfig(
@@ -32,123 +33,119 @@ try:
     model = genai.GenerativeModel('gemini-1.5-flash-latest')
     print("تم إعداد نموذج Gemini بنجاح.")
 except Exception as e:
-    print(f"حدث خطأ فادح أثناء إعداد نموذج Gemini: {e}")
+    print(f"حدث خطأ أثناء إعداد نموذج Gemini: {e}")
     model = None
 
-# --- دوال مساعدة للتعامل مع ملفات JSON ---
-def load_data(file_path):
-    """دالة عامة لتحميل البيانات من أي ملف JSON."""
-    if not os.path.exists(file_path):
-        if file_path == PROCEDURES_FILE:
-            predefined_procedures = {
-                "LSB_FAULT": {
-                    "title": "عطل عام في السيرفر المحلي (LSB)",
-                    "keywords": ["lsb", "سيرفر", "محلي", "متوقف", "vnc"],
-                    "steps": [
-                        "قم بالعثور على عنوان IP الخاص بجهاز LSB من بيانات المحطة.",
-                        "قم بفتح شاشة LSB باستخدام برنامج VNC للتحكم عن بعد.",
-                        "تأكد من أن المؤشر (Indicator) في أعلى يمين الشاشة يعمل ويتحرك.",
-                        "افتح الـ Terminal وتأكد من أن العمليات (processes) الأساسية قيد التشغيل."
-                    ]
-                },
-                "SMO_DISCONNECT": {
-                    "title": "انقطاع الاتصال مع SMO",
-                    "keywords": ["smo", "انقطاع", "اتصال", "ping", "فاصل"],
-                    "steps": [
-                        "تحقق من الاتصال الفيزيائي (الكابلات) بجهاز SMO.",
-                        "قم بعمل Ping على عنوان IP الخاص بـ SMO للتأكد من وجود استجابة.",
-                        "إذا لم يكن هناك استجابة، حاول إعادة تشغيل جهاز SMO."
-                    ]
-                }
-            }
-            save_data(predefined_procedures, file_path)
-            return predefined_procedures
-        return {}
+# --- دوال مساعدة للتعامل مع ملف JSON ---
+def load_data():
+    if not os.path.exists(STATIONS_DATA_FILE): return {}
     try:
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(STATIONS_DATA_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
-    except (json.JSONDecodeError, FileNotFoundError):
-        return {}
+    except (json.JSONDecodeError, FileNotFoundError): return {}
 
-def save_data(data, file_path):
-    """دالة عامة لحفظ البيانات في أي ملف JSON."""
-    with open(file_path, "w", encoding="utf-8") as f:
+def save_data(data):
+    with open(STATIONS_DATA_FILE, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# --- دوال الأوامر الأساسية ---
+# --- دوال البوت ---
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v4.2</b>، مرشدك التقني التفاعلي.\n\n"
-        f"<b>الأوامر المتاحة:</b>\n"
-        f"<code>/search وصف_المشكلة</code> - للبحث الذكي عن حلول.\n"
-        f"<code>/add_fault اسم_المحطة وصف_العطل كلمات_مفتاحية</code> - لتسجيل خبرة جديدة.\n"
-        f"<code>/add_station ...</code> - لإضافة بيانات محطة.\n"
-        f"<code>/update_status ...</code> - لتحديث حالة جهاز."
+        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v4.0</b>، مساعدك الذكي.\n\n"
+        f"<b>أنا أفهم اللغة الطبيعية!</b>\n\n"
+        f"<b>لتسجيل أي معلومة (عطل، حل، تحديث):</b>\n"
+        f"استخدم أمر <code>/log</code> ثم اكتب ما تريد باللغة العامية أو الفصحى.\n"
+        f"<b>مثال:</b> <code>/log النهاردة في محطة العتبة، جهاز SMO كان فاصل تماماً. الحل كان تغيير كابل الباور.</code>\n\n"
+        f"<b>للبحث الذكي:</b>\n"
+        f"<code>/search وصف المشكلة</code>"
     )
 
-async def add_station(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    args = context.args
-    if len(args) < 3:
-        await update.message.reply_text("خطأ.\nمثال: /add_station Attaba ATA SMO=10.1.29.20")
+async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """يستخدم الذكاء الاصطناعي لتحليل مدخلات اللغة الطبيعية وتحديث قاعدة البيانات."""
+    user_name = update.message.from_user.first_name
+    natural_text = " ".join(context.args)
+    if not natural_text:
+        await update.message.reply_text("الرجاء كتابة وصف للمعلومة بعد الأمر /log.")
         return
 
-    station_name, short_name, *device_args = args
-    data = load_data(STATIONS_DATA_FILE)
-    
-    if station_name not in data:
-        data[station_name] = {"short_name": short_name.upper(), "devices": {}, "history": []}
+    await update.message.reply_text("فهمت. لحظات من فضلك، أقوم بتحليل وتخزين المعلومة...")
 
-    for item in device_args:
-        if '=' in item:
-            device, ip = item.split('=', 1)
-            data[station_name]["devices"][device.upper()] = {"ip": ip, "status": "غير معروف"}
-    
-    save_data(data, STATIONS_DATA_FILE)
-    await update.message.reply_text(f"تم إضافة/تحديث بيانات محطة '{station_name}' بنجاح.")
+    data = load_data()
+    stations_structure = json.dumps(list(data.keys()), ensure_ascii=False)
 
-async def add_fault(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    args = context.args
-    if len(args) < 3:
-        await update.message.reply_text("خطأ.\nمثال: /add_fault Attaba مشكلة في SMO انقطاع,تهنيج")
-        return
-    
-    station_name = args[0]
-    keywords = args[-1].split(',')
-    fault_description = " ".join(args[1:-1])
-    
-    data = load_data(STATIONS_DATA_FILE)
-    if station_name not in data:
-        await update.message.reply_text(f"خطأ: المحطة '{station_name}' غير موجودة.")
-        return
-    
-    fault_record = {
-        "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "user": update.message.from_user.first_name,
-        "description": fault_description,
-        "keywords": [k.strip() for k in keywords]
-    }
-    data[station_name]["history"].append(fault_record)
-    save_data(data, STATIONS_DATA_FILE)
-    await update.message.reply_text(f"تم تسجيل العطل كخبرة جديدة في سجل محطة '{station_name}'.")
+    prompt = f"""
+    أنت مساعد ذكي ومحلل بيانات، مهمتك هي تحليل النص التالي الذي كتبه المهندس "{user_name}" وتحويله إلى بيانات منظمة.
 
-async def update_status(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    args = context.args
-    if len(args) != 3:
-        await update.message.reply_text("خطأ.\nمثال: /update_status Attaba SMO يعمل")
+    **النص المكتوب من المهندس:**
+    "{natural_text}"
+
+    **قائمة المحطات الموجودة حالياً في قاعدة البيانات:**
+    {stations_structure}
+
+    **مهمتك المطلوبة:**
+    1.  **اقرأ النص بعناية.**
+    2.  **حدد اسم المحطة** التي يتحدث عنها النص. يجب أن يكون الاسم من ضمن قائمة المحطات الموجودة.
+    3.  **استخرج وصفاً دقيقاً للعطل** أو المعلومة.
+    4.  **استخرج الحل** إذا تم ذكره في النص.
+    5.  **استخرج كلمات مفتاحية** (keywords) تصف المشكلة (مثل: انقطاع, تهنيج, حرارة, SMO, FEB1).
+    6.  **قم بإنشاء كائن JSON** يحتوي على هذه المعلومات بالنسق التالي بالضبط. إذا لم تجد معلومة ما، اترك قيمتها فارغة (مثال: "solution": "").
+
+    **نسق الـ JSON المطلوب (مهم جداً):**
+    ```json
+    {{
+      "station_name": "اسم المحطة الذي حددته",
+      "fault_description": "وصف العطل الذي استخرجته",
+      "solution": "الحل الذي تم اتخاذه (إن وجد)",
+      "keywords": ["كلمة1", "كلمة2", "كلمة3"]
+    }}
+    ```
+
+    **ملاحظات هامة:**
+    *   إذا لم تستطع تحديد اسم المحطة من النص، أو إذا كانت المحطة غير موجودة في القائمة، يجب أن يكون الرد هو كلمة "Error: Station not found" فقط لا غير.
+    *   يجب أن يكون ردك هو كائن الـ JSON فقط، بدون أي نصوص إضافية قبله أو بعده.
+    """
+
+    if not model:
+        await update.message.reply_text("عذراً، خدمة الذكاء الاصطناعي Gemini غير متاحة.")
         return
+
+    try:
+        response = await model.generate_content_async(prompt)
+        cleaned_response = response.text.strip().replace("```json", "").replace("```", "").strip()
         
-    station_name, device_name, status = args
-    data = load_data(STATIONS_DATA_FILE)
-    if station_name in data and device_name.upper() in data[station_name]["devices"]:
-        data[station_name]["devices"][device_name.upper()]["status"] = status
-        save_data(data, STATIONS_DATA_FILE)
-        await update.message.reply_text(f"تم تحديث حالة جهاز {device_name.upper()} في محطة {station_name} إلى '{status}'.")
-    else:
-        await update.message.reply_text("خطأ: المحطة أو الجهاز غير موجود.")
+        if "Error: Station not found" in cleaned_response:
+            await update.message.reply_text(f"عذراً يا {user_name}، لم أستطع تحديد اسم المحطة في رسالتك أو أن المحطة غير مسجلة. الرجاء ذكر اسم المحطة بوضوح (مثال: محطة العتبة).")
+            return
 
-# --- محرك البحث الذكي والمطور ---
+        info_json = json.loads(cleaned_response)
+        station_name = info_json.get("station_name")
+
+        if station_name not in data:
+            await update.message.reply_text(f"خطأ: المحطة '{station_name}' التي تم تحديدها غير موجودة في قاعدة البيانات.")
+            return
+
+        fault_record = {
+            "date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            "user": user_name,
+            "description": info_json.get("fault_description", ""),
+            "solution": info_json.get("solution", ""),
+            "keywords": info_json.get("keywords", [])
+        }
+
+        if "history" not in data[station_name]:
+            data[station_name]["history"] = []
+            
+        data[station_name]["history"].append(fault_record)
+        save_data(data)
+        await update.message.reply_text(f"تم تسجيل المعلومة بنجاح في سجل محطة '{station_name}'. شكراً لك!")
+
+    except json.JSONDecodeError:
+        await update.message.reply_text("عذراً، لم أتمكن من تحليل النص بشكل صحيح. حاول إعادة صياغة الجملة لتكون أوضح.")
+    except Exception as e:
+        await update.message.reply_text(f"عذراً، واجهت خطأ. الخطأ: {e}")
+
 
 async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user_name = update.message.from_user.first_name
@@ -157,46 +154,35 @@ async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await update.message.reply_text("الرجاء كتابة وصف للمشكلة بعد الأمر /search.")
         return
 
-    await update.message.reply_text(f"أهلاً بك يا {user_name}. لحظات من فضلك، أبحث في قواعد المعرفة عن أفضل حل...")
+    await update.message.reply_text(f"أهلاً بك يا {user_name}. لحظات من فضلك، أقوم بتحليل البيانات لأجد لك أفضل حل...")
 
-    stations_history = load_data(STATIONS_DATA_FILE)
-    procedures = load_data(PROCEDURES_FILE)
-    history_context = json.dumps(stations_history, ensure_ascii=False, indent=2)
-    procedures_context = json.dumps(procedures, ensure_ascii=False, indent=2)
+    data = load_data()
+    full_context = json.dumps(data, ensure_ascii=False, indent=2)
 
     prompt = f"""
-    أنت "المرشد الخبير Zekoo"، مساعد تقني ذكي ومحلل بيانات. مهمتك هي مساعدة المهندس "{user_name}" في حل مشكلة تقنية.
+    أنت "كبير المهندسين Zekoo"، مساعد تقني خبير ومحلل بيانات. مهمتك هي مساعدة المهندس "{user_name}" في حل مشكلة تقنية.
 
     **سؤال المهندس:**
     "{search_query}"
 
-    **لديك مصدران للمعلومات:**
-    1.  **قاعدة الإجراءات القياسية (Procedures):** تحتوي على حلول جاهزة وموثوقة لمشاكل شائعة.
-    2.  **سجل الأعطال التاريخي (History):** يحتوي على خبرات سابقة سجلها الفريق.
-
-    **قاعدة الإجراءات القياسية المتاحة لك:**
+    **قاعدة البيانات الكاملة المتاحة لك (بتنسيق JSON):**
     ```json
-    {procedures_context}
+    {full_context}
     ```
 
-    **سجل الأعطال التاريخي المتاح لك:**
-    ```json
-    {history_context}
-    ```
+    **مهمتك المطلوبة بدقة:**
+    1.  **تحليل عميق:** اقرأ سؤال المهندس بعناية. ثم ابحث في قاعدة البيانات الكاملة عن أي معلومات ذات صلة.
+    2.  **إيجاد الأعطال المشابهة:** ركز على إيجاد الأعطال السابقة التي تتشابه مع المشكلة الحالية بناءً على **وصف العطل والحلول والكلمات المفتاحية (keywords)**.
+    3.  **صياغة الرد:** قم بصياغة رد احترافي ومنظم.
 
-    **مهمتك المطلوبة بدقة (اتبع هذا الترتيب):**
-    1.  **الأولوية للإجراءات القياسية:** أولاً، تحقق إذا كان سؤال المهندس يتطابق مع أي مشكلة في "قاعدة الإجراءات القياسية" بناءً على العنوان أو الكلمات المفتاحية (keywords).
-    2.  **إذا وجدت إجراءً مطابقاً:**
-        *   يجب أن يكون ردك هو الإجراء القياسي فقط.
-        *   ابدأ ردك بالعبارة التالية بالضبط: "حسناً يا {user_name}، بناءً على قاعدة الإجراءات المعتمدة، هذه المشكلة لها حل قياسي."
-        *   ثم اعرض عنوان الإجراء وخطواته بشكل واضح ومرقم. لا تضف أي معلومات من سجل الأعطال.
-    3.  **إذا لم تجد أي إجراء مطابق:**
-        *   انتقل إلى تحليل "سجل الأعطال التاريخي".
-        *   ابحث عن أعطال مشابهة في السجل بناءً على الوصف والكلمات المفتاحية.
-        *   ابدأ ردك بالعبارة التالية بالضبط: "حسناً يا {user_name}، لم أجد إجراءً قياسياً لهذه المشكلة، ولكن بناءً على الخبرات السابقة، إليك التحليل:"
-        *   لخص أهم عطل سابق مشابه والحلول التي تم استنتاجها.
+    **شروط تنسيق الرد النهائي (مهم جداً):**
+    *   **الترحيب:** ابدأ ردك بالعبارة التالية بالضبط: "أهلاً بك يا {user_name}، بصفتي كبير المهندسين، قمت بتحليل الموقف وإليك خطة العمل المقترحة:"
+    *   **التحليل المبدئي:** في فقرة قصيرة، اذكر تشخيصك المبدئي للمشكلة.
+    *   **الأعطال السابقة ذات الصلة:** إذا وجدت أعطالاً سابقة مشابهة، اذكرها بإيجاز تحت عنوان "**تاريخ الأعطال المشابهة:**".
+    *   **البيانات الفنية:** إذا كان الحل يتطلب معرفة IP أو حالة جهاز، اذكرها تحت عنوان "**البيانات الفنية المطلوبة:**".
+    *   **خطة العمل:** قدم الحل النهائي على هيئة **خطوات مرقمة وواضحة** تحت عنوان "**خطة العمل المقترحة:**".
 
-    **تنسيق الرد يجب أن يكون احترافياً وواضحاً.**
+    إذا لم تجد أي معلومات مفيدة، اعتذر وقدم نصيحة عامة.
     """
 
     if not model:
@@ -208,26 +194,19 @@ async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         response = await model.generate_content_async(prompt, request_options=request_options)
         ai_response = response.text
     except Exception as e:
-        # طباعة الخطأ في سجلات Render لتشخيصه لاحقاً
-        print(f"حدث خطأ من Gemini API: {e}")
-        await update.message.reply_text(f"عذراً، واجهت خطأ أثناء التحليل. يرجى مراجعة سجلات الخادم.")
+        await update.message.reply_text(f"عذراً، واجهت خطأ أثناء التحليل. الخطأ: {e}")
         return
 
     await update.message.reply_text(ai_response)
 
+
 def main() -> None:
-    """الدالة الرئيسية لتشغيل البوت."""
-    load_data(PROCEDURES_FILE)
-    
     application = Application.builder().token(TELEGRAM_TOKEN).build()
-    
     application.add_handler(CommandHandler("start", start))
-    application.add_handler(CommandHandler("add_station", add_station))
-    application.add_handler(CommandHandler("add_fault", add_fault))
-    application.add_handler(CommandHandler("update_status", update_status))
+    application.add_handler(CommandHandler("log", log_natural_language)) # الأمر الجديد والذكي
     application.add_handler(CommandHandler("search", search_in_kb))
     
-    print("Zekoo v4.2 (المرشد الخبير) قيد التشغيل...")
+    print("Zekoo v4.0 (المساعد الذكي) قيد التشغيل...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":

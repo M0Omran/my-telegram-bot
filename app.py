@@ -13,7 +13,7 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import google.generativeai as genai
 
 # --- الإعدادات الرئيسية (معلوماتك الخاصة) ---
-TELEGRAM_TOKEN = "7986947716:AAHo-wdAuVo7LLGo21s-B6Cedowe3agevwc"
+TELEGRAM_TOKEN = "7986947716:AAF3L0zIrXfsNWOvsXqMH3liEYBx8asrqs8"
 GEMINI_API_KEY = "AIzaSyDP8yA4S8rDSFsYEpzKuDbo-0IDNmZXxYA"
 
 # --- أسماء الملفات ---
@@ -268,3 +268,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+

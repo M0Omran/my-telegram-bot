@@ -1,103 +1,199 @@
 {
-    "Rod": {
-        "full_name": "روض الفرج",
+    "HVR": {
+        "full_name": "Rod El Farag HVS",
         "devices": {
-            "SMO": { "details": { "ip": "10.32.109.20" } },
-            "LSB": { "details": { "ip": "10.32.109.30" } },
-            "FEB-1": { "details": { "ip": "10.32.109.13" } },
-            "FEB-2": { "details": { "ip": "10.32.109.14" } },
+            "RTU-1": { "details": { "ip": "10.32.141.11" } },
+            "RTU-2": { "details": { "ip": "10.32.141.12" } }
+        },
+        "history": []
+    },
+    "WSI": {
+        "full_name": "Imbaba Workshop",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.32.125.11" } },
+            "RTU-2": { "details": { "ip": "10.32.125.12" } },
+            "FEP-1": { "details": { "ip": "10.32.125.13" } },
+            "FEP-2": { "details": { "ip": "10.32.125.14" } },
+            "SMO": { "details": { "ip": "10.32.125.20" } },
+            "LSB": { "details": { "ip": "10.32.125.30" } }
+        },
+        "history": []
+    },
+    "ROD": {
+        "full_name": "Rod El Farag Corridor",
+        "devices": {
             "RTU-1": { "details": { "ip": "10.32.109.11" } },
-            "RTU-2": { "details": { "ip": "10.32.109.12" } }
+            "RTU-2": { "details": { "ip": "10.32.109.12" } },
+            "FEP-1": { "details": { "ip": "10.32.109.13" } },
+            "FEP-2": { "details": { "ip": "10.32.109.14" } },
+            "SMO": { "details": { "ip": "10.32.109.20" } },
+            "LSB": { "details": { "ip": "10.32.109.30" } }
         },
         "history": []
     },
     "RIN": {
-        "full_name": "الدائري",
+        "full_name": "Ring Road",
         "devices": {
-            "SMO": { "details": { "ip": "10.32.93.20" } },
             "RTU-1": { "details": { "ip": "10.32.93.11" } },
-            "RTU-2": { "details": { "ip": "10.32.93.12" } }
+            "RTU-2": { "details": { "ip": "10.32.93.12" } },
+            "SMO": { "details": { "ip": "10.32.93.20" } }
         },
         "history": []
     },
     "QAW": {
-        "full_name": "القومية",
+        "full_name": "El Qawmia",
         "devices": {
-            "SMO": { "details": { "ip": "10.32.77.20" } },
             "RTU-1": { "details": { "ip": "10.32.77.11" } },
-            "RTU-2": { "details": { "ip": "10.32.77.12" } }
-        },
-        "history": []
-    },
-    "IMB": {
-        "full_name": "امبابة",
-        "devices": {
-            "SMO": { "details": { "ip": "10.32.45.20" } },
-            "RTU-1": { "details": { "ip": "10.32.45.11" } },
-            "RTU-2": { "details": { "ip": "10.32.45.12" } }
+            "RTU-2": { "details": { "ip": "10.32.77.12" } },
+            "SMO": { "details": { "ip": "10.32.77.20" } }
         },
         "history": []
     },
     "BOH": {
-        "full_name": "البوهي",
+        "full_name": "El Bohy",
         "devices": {
-            "SMO": { "details": { "ip": "10.32.61.20" } },
-            "LSB": { "details": { "ip": "10.32.61.30" } },
-            "FEB-1": { "details": { "ip": "10.32.61.13" } },
-            "FEB-2": { "details": { "ip": "10.32.61.14" } },
             "RTU-1": { "details": { "ip": "10.32.61.11" } },
-            "RTU-2": { "details": { "ip": "10.32.61.12" } }
+            "RTU-2": { "details": { "ip": "10.32.61.12" } },
+            "FEP-1": { "details": { "ip": "10.32.61.13" } },
+            "FEP-2": { "details": { "ip": "10.32.61.14" } },
+            "SMO": { "details": { "ip": "10.32.61.20" } },
+            "LSB": { "details": { "ip": "10.32.61.30" } }
+        },
+        "history": []
+    },
+    "IMB": {
+        "full_name": "Imbaba",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.32.45.11" } },
+            "RTU-2": { "details": { "ip": "10.32.45.12" } },
+            "SMO": { "details": { "ip": "10.32.45.20" } }
         },
         "history": []
     },
     "SUD": {
-        "full_name": "السودان",
+        "full_name": "Sudan",
         "devices": {
-            "SMO": { "details": { "ip": "10.32.29.20" } },
             "RTU-1": { "details": { "ip": "10.32.29.11" } },
-            "RTU-2": { "details": { "ip": "10.32.29.12" } }
+            "RTU-2": { "details": { "ip": "10.32.29.12" } },
+            "SMO": { "details": { "ip": "10.32.29.20" } }
+        },
+        "history": []
+    },
+    "UNI": {
+        "full_name": "Cairo University",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.33.93.11" } },
+            "RTU-2": { "details": { "ip": "10.33.93.12" } },
+            "FEP-1": { "details": { "ip": "10.33.93.13" } },
+            "FEP-2": { "details": { "ip": "10.33.93.14" } },
+            "SMO": { "details": { "ip": "10.33.93.20" } },
+            "LSB": { "details": { "ip": "10.33.93.30" } }
+        },
+        "history": []
+    },
+    "BOU": {
+        "full_name": "Boulak El Dakrour",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.33.77.11" } },
+            "RTU-2": { "details": { "ip": "10.33.77.12" } },
+            "SMO": { "details": { "ip": "10.33.77.20" } }
+        },
+        "history": []
+    },
+    "DOW": {
+        "full_name": "Gamet el Dowel",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.33.61.11" } },
+            "RTU-2": { "details": { "ip": "10.33.61.12" } },
+            "SMO": { "details": { "ip": "10.33.61.20" } }
+        },
+        "history": []
+    },
+    "WAD": {
+        "full_name": "Wadi el Nile",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.33.45.11" } },
+            "RTU-2": { "details": { "ip": "10.33.45.12" } },
+            "FEP-1": { "details": { "ip": "10.33.45.13" } },
+            "FEP-2": { "details": { "ip": "10.33.45.14" } },
+            "SMO": { "details": { "ip": "10.33.45.20" } },
+            "LSB": { "details": { "ip": "10.33.45.30" } }
+        },
+        "history": []
+    },
+    "TAW": {
+        "full_name": "Tawfikia",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.33.29.11" } },
+            "RTU-2": { "details": { "ip": "10.33.29.12" } },
+            "SMO": { "details": { "ip": "10.33.29.20" } }
         },
         "history": []
     },
     "KIT": {
-        "full_name": "الكيت كات",
+        "full_name": "Kit-Kat",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.31.77.11" } },
+            "RTU-2": { "details": { "ip": "10.31.77.12" } },
+            "FEP-1": { "details": { "ip": "10.31.77.13" } },
+            "FEP-2": { "details": { "ip": "10.31.77.14" } },
             "SMO": { "details": { "ip": "10.31.77.20" } },
-            "LSB": { "details": { "ip": "10.31.77.30" } },
-            "FEB1": { "details": { "ip": "10.31.77.13" } },
-            "FEB2": { "details": { "ip": "10.31.77.14" } },
-            "RTU1": { "details": { "ip": "10.31.77.11" } },
-            "RTU2": { "details": { "ip": "10.31.77.12" } }
+            "LSB": { "details": { "ip": "10.31.77.30" } }
         },
         "history": []
     },
     "SAF": {
         "full_name": "Safaa Hegazy",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.31.61.11" } },
+            "RTU-2": { "details": { "ip": "10.31.61.12" } },
             "SMO": { "details": { "ip": "10.31.61.20" } }
+        },
+        "history": []
+    },
+    "MAS": {
+        "full_name": "Maspero",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.31.45.11" } },
+            "RTU-2": { "details": { "ip": "10.31.45.12" } },
+            "SMO": { "details": { "ip": "10.31.45.20" } }
         },
         "history": []
     },
     "NAS": {
         "full_name": "Nasser",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.31.29.11" } },
+            "RTU-2": { "details": { "ip": "10.31.29.12" } },
             "SMO": { "details": { "ip": "10.31.29.20" } }
+        },
+        "history": []
+    },
+    "OCC": {
+        "full_name": "OCC",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.0.45.25" } },
+            "RTU-2": { "details": { "ip": "10.0.45.26" } }
         },
         "history": []
     },
     "ATA": {
         "full_name": "Attaba",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.1.29.11" } },
+            "RTU-2": { "details": { "ip": "10.1.29.12" } },
+            "FEP-1": { "details": { "ip": "10.1.29.13" } },
+            "FEP-2": { "details": { "ip": "10.1.29.14" } },
             "SMO": { "details": { "ip": "10.1.29.20" } },
-            "LSB": { "details": { "ip": "10.1.29.30" } },
-            "FEB1": { "details": { "ip": "10.1.29.13" } },
-            "FEB2": { "details": { "ip": "10.1.29.14" } }
+            "LSB": { "details": { "ip": "10.1.29.30" } }
         },
         "history": []
     },
-    "Bab": {
-        "full_name": "ElsheriaBab",
+    "BAB": {
+        "full_name": "Bab el Shaaria",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.1.109.11" } },
+            "RTU-2": { "details": { "ip": "10.1.109.12" } },
             "SMO": { "details": { "ip": "10.1.109.20" } }
         },
         "history": []
@@ -105,6 +201,8 @@
     "GES": {
         "full_name": "El Geish",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.1.45.11" } },
+            "RTU-2": { "details": { "ip": "10.1.45.12" } },
             "SMO": { "details": { "ip": "10.1.45.20" } }
         },
         "history": []
@@ -112,31 +210,201 @@
     "ABP": {
         "full_name": "Abdou Pasha",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.1.93.11" } },
+            "RTU-2": { "details": { "ip": "10.1.93.12" } },
             "SMO": { "details": { "ip": "10.1.93.20" } }
         },
         "history": []
     },
     "ABA": {
-        "full_name": "Abbasia",
+        "full_name": "Abbasia station",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.1.61.11" } },
+            "RTU-2": { "details": { "ip": "10.1.61.12" } },
+            "FEP-1": { "details": { "ip": "10.1.61.13" } },
+            "FEP-2": { "details": { "ip": "10.1.61.14" } },
             "SMO": { "details": { "ip": "10.1.61.20" } },
-            "LSB": { "details": { "ip": "10.1.61.30" } },
-            "FEB1": { "details": { "ip": "10.1.61.13" } },
-            "FEB2": { "details": { "ip": "10.1.61.14" } },
-            "RTU1": { "details": { "ip": "10.1.61.11" } },
-            "RTU2": { "details": { "ip": "10.1.61.12" } }
+            "LSB": { "details": { "ip": "10.1.61.30" } }
+        },
+        "history": []
+    },
+    "AHV": {
+        "full_name": "Abbasia HVS",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.1.125.11" } },
+            "RTU-2": { "details": { "ip": "10.1.125.12" } }
         },
         "history": []
     },
     "WSA": {
         "full_name": "Abbasia workshop",
         "devices": {
+            "RTU-1": { "details": { "ip": "10.1.77.11" } },
+            "RTU-2": { "details": { "ip": "10.1.77.12" } },
+            "FEP-1": { "details": { "ip": "10.1.77.13" } },
+            "FEP-2": { "details": { "ip": "10.1.77.14" } },
             "SMO": { "details": { "ip": "10.1.77.20" } },
-            "LSB": { "details": { "ip": "10.1.77.30" } },
-            "FEB1": { "details": { "ip": "10.1.77.13" } },
-            "FEB2": { "details": { "ip": "10.1.77.14" } },
-            "RTU1": { "details": { "ip": "10.1.77.11" } },
-            "RTU2": { "details": { "ip": "10.1.77.12" } }
+            "LSB": { "details": { "ip": "10.1.77.30" } }
+        },
+        "history": []
+    },
+    "CFR": {
+        "full_name": "Cairo Fair",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.2.29.11" } },
+            "RTU-2": { "details": { "ip": "10.2.29.12" } },
+            "SMO": { "details": { "ip": "10.2.29.20" } }
+        },
+        "history": []
+    },
+    "STD": {
+        "full_name": "Stadium",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.2.77.11" } },
+            "RTU-2": { "details": { "ip": "10.2.77.12" } },
+            "SMO": { "details": { "ip": "10.2.77.20" } }
+        },
+        "history": []
+    },
+    "KEB": {
+        "full_name": "Kolleyet el Banat",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.2.45.11" } },
+            "RTU-2": { "details": { "ip": "10.2.45.12" } },
+            "SMO": { "details": { "ip": "10.2.45.20" } }
+        },
+        "history": []
+    },
+    "AHR": {
+        "full_name": "Al Ahram",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.2.61.11" } },
+            "RTU-2": { "details": { "ip": "10.2.61.12" } },
+            "FEP-1": { "details": { "ip": "10.2.61.13" } },
+            "FEP-2": { "details": { "ip": "10.2.61.14" } },
+            "SMO": { "details": { "ip": "10.2.61.20" } },
+            "LSB": { "details": { "ip": "10.2.61.30" } }
+        },
+        "history": []
+    },
+    "HAR": {
+        "full_name": "Haroun",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.2.93.11" } },
+            "RTU-2": { "details": { "ip": "10.2.93.12" } },
+            "SMO": { "details": { "ip": "10.2.93.20" } }
+        },
+        "history": []
+    },
+    "HEL": {
+        "full_name": "Heliopolis Square",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.41.29.11" } },
+            "RTU-2": { "details": { "ip": "10.41.29.12" } },
+            "RTU-H4C-1": { "details": { "ip": "10.41.29.31" } },
+            "RTU-H4C-2": { "details": { "ip": "10.41.29.32" } },
+            "SMO": { "details": { "ip": "10.41.29.20" } }
+        },
+        "history": []
+    },
+    "ALF": {
+        "full_name": "Alf Masken",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.41.45.11" } },
+            "RTU-2": { "details": { "ip": "10.41.45.12" } },
+            "FEP-1": { "details": { "ip": "10.41.45.13" } },
+            "FEP-2": { "details": { "ip": "10.41.45.14" } },
+            "SMO": { "details": { "ip": "10.41.45.20" } },
+            "LSB": { "details": { "ip": "10.41.45.30" } }
+        },
+        "history": []
+    },
+    "SHA": {
+        "full_name": "El Shams Club",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.41.61.11" } },
+            "RTU-2": { "details": { "ip": "10.41.61.12" } },
+            "SMO": { "details": { "ip": "10.41.61.20" } }
+        },
+        "history": []
+    },
+    "NOZ": {
+        "full_name": "El Nozha",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.41.77.11" } },
+            "RTU-2": { "details": { "ip": "10.41.77.12" } },
+            "SMO": { "details": { "ip": "10.41.77.20" } }
+        },
+        "history": []
+    },
+    "HIB": {
+        "full_name": "Hisham Barakat",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.41.93.11" } },
+            "RTU-2": { "details": { "ip": "10.41.93.12" } },
+            "FEP-1": { "details": { "ip": "10.41.93.13" } },
+            "FEP-2": { "details": { "ip": "10.41.93.14" } },
+            "SMO": { "details": { "ip": "10.41.93.20" } },
+            "LSB": { "details": { "ip": "10.41.93.30" } }
+        },
+        "history": []
+    },
+    "QBA": {
+        "full_name": "Qubaa",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.42.29.11" } },
+            "RTU-2": { "details": { "ip": "10.42.29.12" } },
+            "SMO": { "details": { "ip": "10.42.29.20" } }
+        },
+        "history": []
+    },
+    "OMR": {
+        "full_name": "Omar Ibn El Khattab",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.42.45.11" } },
+            "RTU-2": { "details": { "ip": "10.42.45.12" } },
+            "SMO": { "details": { "ip": "10.42.45.20" } }
+        },
+        "history": []
+    },
+    "HYK": {
+        "full_name": "Haykstep",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.42.61.11" } },
+            "RTU-2": { "details": { "ip": "10.42.61.12" } },
+            "SMO": { "details": { "ip": "10.42.61.20" } }
+        },
+        "history": []
+    },
+    "ADM": {
+        "full_name": "Adly Mansour Station",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.42.93.11" } },
+            "RTU-2": { "details": { "ip": "10.42.93.12" } },
+            "FEP-1": { "details": { "ip": "10.42.93.13" } },
+            "FEP-2": { "details": { "ip": "10.42.93.14" } },
+            "SMO": { "details": { "ip": "10.42.93.20" } },
+            "LSB": { "details": { "ip": "10.42.93.30" } }
+        },
+        "history": []
+    },
+    "WSM": {
+        "full_name": "Adly Mansour Workshop",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.42.125.11" } },
+            "RTU-2": { "details": { "ip": "10.42.125.12" } },
+            "FEP-1": { "details": { "ip": "10.42.125.13" } },
+            "FEP-2": { "details": { "ip": "10.42.125.14" } },
+            "SMO": { "details": { "ip": "10.42.125.20" } },
+            "LSB": { "details": { "ip": "10.42.125.30" } }
+        },
+        "history": []
+    },
+    "HVM": {
+        "full_name": "Adly Mansour HVM",
+        "devices": {
+            "RTU-1": { "details": { "ip": "10.42.109.11" } },
+            "RTU-2": { "details": { "ip": "10.42.109.12" } }
         },
         "history": []
     }

@@ -13,12 +13,13 @@ from telegram.ext import Application, CommandHandler, MessageHandler, filters, C
 import google.generativeai as genai
 
 # --- الإعدادات الرئيسية (معلوماتك الخاصة) ---
-TELEGRAM_TOKEN = "7986947716:AAF3L0zIrXfsNWOvsXqMH3liEYBx8asrqs8"
+# تم التحديث لاستخدام التوكن الجديد والآمن
+TELEGRAM_TOKEN = "7986947716:AAF3L0zIrXfsNWOvsXqMH3liEYBx8asrqs8" 
 GEMINI_API_KEY = "AIzaSyDP8yA4S8rDSFsYEpzKuDbo-0IDNmZXxYA"
 
 # --- أسماء الملفات ---
 STATIONS_DATA_FILE = "stations_data.json"
-PROCEDURES_FILE = "procedures.json" # الملف الجديد
+PROCEDURES_FILE = "procedures.json"
 
 # --- إعدادات التشغيل الأساسية ---
 logging.basicConfig(
@@ -38,7 +39,6 @@ except Exception as e:
 
 # --- دوال مساعدة للتعامل مع ملف JSON ---
 def load_json_file(file_path):
-    """دالة عامة لتحميل البيانات من أي ملف JSON."""
     if not os.path.exists(file_path): return {}
     try:
         with open(file_path, "r", encoding="utf-8") as f:
@@ -46,7 +46,6 @@ def load_json_file(file_path):
     except (json.JSONDecodeError, FileNotFoundError): return {}
 
 def save_json_file(data, file_path):
-    """دالة عامة لحفظ البيانات في أي ملف JSON."""
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
@@ -55,15 +54,63 @@ def save_json_file(data, file_path):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v7.0</b>، مساعدك الخبير.\n\n"
-        f"أنا الآن أستخدم قاعدة معرفة للإجراءات القياسية بالإضافة إلى سجل الأعطال.\n\n"
+        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v8.0</b>، مساعدك الذكي.\n\n"
+        f"<b>ميزة جديدة:</b> يمكنك الآن عرض معلومات أي محطة مباشرة باستخدام الهاشتاج (مثال: <code>#ATA</code>).\n\n"
         f"<b>الأوامر الأساسية:</b>\n"
         f"<code>/list_stations</code> - لعرض كل المحطات.\n"
         f"<code>/add [بيانات]</code> - لإضافة/تحديث بيانات.\n"
-
         f"<code>/log [وصف]</code> - لتسجيل عطل تاريخي.\n"
         f"<code>/search [وصف]</code> - للبحث الذكي عن حلول."
     )
+
+async def show_station_info_by_hashtag(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """
+    دالة جديدة: تعرض بطاقة معلومات كاملة عن محطة عند استدعائها بهاشتاج.
+    """
+    station_key = update.message.text[1:].upper().strip() # نزيل الـ # ونحول لحروف كبيرة
+    data = load_json_file(STATIONS_DATA_FILE)
+
+    if station_key not in data:
+        await update.message.reply_text(f"المحطة بالاختصار '{station_key}' غير موجودة. استخدم /list_stations لمعرفة المحطات المسجلة.")
+        return
+
+    station_info = data[station_key]
+    full_name = station_info.get('full_name', 'N/A')
+    devices = station_info.get('devices', {})
+    history = station_info.get('history', [])
+
+    message = f"🗂️ <b>بطاقة معلومات محطة: {full_name} ({station_key})</b>\n"
+    message += "─" * 20 + "\n\n"
+
+    # عرض الأجهزة وتفاصيلها
+    if devices:
+        message += "💻 <b>الأجهزة المسجلة:</b>\n"
+        for device_name, device_data in devices.items():
+            message += f"  • <b>{device_name}</b>\n"
+            details = device_data.get('details', {})
+            if details:
+                for key, value in details.items():
+                    message += f"    - <code>{key}: {value}</code>\n"
+            else:
+                message += "    - <i>لا توجد تفاصيل مسجلة.</i>\n"
+    else:
+        message += "<i>لا توجد أجهزة مسجلة لهذه المحطة.</i>\n"
+
+    message += "\n" + "─" * 20 + "\n\n"
+
+    # عرض آخر 5 أعطال
+    if history:
+        message += "📜 <b>آخر 5 أعطال مسجلة:</b>\n"
+        # نعرض آخر 5 فقط
+        for fault in reversed(history[-5:]):
+            fault_date = fault.get('date', 'N/A')
+            fault_desc = fault.get('description', 'N/A')
+            message += f"  • <b>[{fault_date}]</b>: {fault_desc}\n"
+    else:
+        message += "<i>لا يوجد سجل أعطال لهذه المحطة.</i>\n"
+
+    await update.message.reply_html(message)
+
 
 async def list_stations(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     data = load_json_file(STATIONS_DATA_FILE)
@@ -125,7 +172,6 @@ async def add_or_update_station_data(update: Update, context: ContextTypes.DEFAU
 
 
 async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # No changes to this function
     user_name = update.message.from_user.first_name
     natural_text = " ".join(context.args)
     if not natural_text:
@@ -184,62 +230,39 @@ async def log_natural_language(update: Update, context: ContextTypes.DEFAULT_TYP
 
 
 async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Search function now prioritizes standard procedures."""
     user_name = update.message.from_user.first_name
     search_query = " ".join(context.args)
     if not search_query:
         await update.message.reply_text("Please provide a problem description after /search.")
         return
-
     await update.message.reply_text(f"Hello {user_name}. Please wait while I consult the knowledge base...")
-
     stations_data = load_json_file(STATIONS_DATA_FILE)
     procedures_data = load_json_file(PROCEDURES_FILE)
-    
     stations_context = json.dumps(stations_data, ensure_ascii=False, indent=2)
     procedures_context = json.dumps(procedures_data, ensure_ascii=False, indent=2)
-
-    # The new, smarter prompt
     prompt = f"""
     You are "Zekoo, the Expert Engineer", an AI technical assistant. Your task is to help engineer "{user_name}" solve a technical problem.
-
-    **Engineer's Query:**
-    "{search_query}"
-
+    **Engineer's Query:** "{search_query}"
     **You have two sources of information:**
-    1.  **Standard Procedures (`procedures.json`):** This is your primary source. It contains official, verified solutions for common, critical problems.
-    2.  **Historical Faults (`stations_data.json`):** This contains past experiences logged by the team.
-
+    1.  **Standard Procedures (`procedures.json`):** This is your primary source.
+    2.  **Historical Faults (`stations_data.json`):** This contains past experiences.
     **Available Standard Procedures:**
     ```json
     {procedures_context}
     ```
-
     **Available Historical Faults:**
     ```json
     {stations_context}
     ```
-
     **Your Mission (Follow this order strictly):**
-    1.  **PRIORITY 1: CHECK PROCEDURES:** First, analyze the user's query and check if it matches any problem in the **Standard Procedures** based on the title or keywords.
-    2.  **IF A PROCEDURE MATCHES:**
-        *   Your response MUST start with: "Based on the standard knowledge base, this problem has an official procedure."
-        *   Then, present the procedure's title and its steps clearly and in order.
-        *   **DO NOT** mention or use any information from the historical faults. Your response should only be the standard procedure.
-    3.  **IF NO PROCEDURE MATCHES:**
-        *   Then, and only then, proceed to analyze the **Historical Faults**.
-        *   Your response MUST start with: "No standard procedure was found for this issue. However, based on past experiences, here is an analysis:"
-        *   Search the history for similar faults.
-        *   Provide a summary of the most relevant past fault and the solution that was applied.
-        *   Extract and display any relevant technical data (like IPs) for the devices involved.
-
-    **Format your response professionally and clearly.**
+    1.  **PRIORITY 1: CHECK PROCEDURES:** First, check if the query matches any problem in the Standard Procedures.
+    2.  **IF A PROCEDURE MATCHES:** Your response MUST start with: "Based on the standard knowledge base, this problem has an official procedure." Then, present the procedure's title and steps. Do not use historical data.
+    3.  **IF NO PROCEDURE MATCHES:** Your response MUST start with: "No standard procedure was found. However, based on past experiences, here is an analysis:" Then, analyze the Historical Faults, provide a summary, and display relevant technical data.
+    **Format your response professionally.**
     """
-
     if not model:
         await update.message.reply_text("Gemini AI service is unavailable.")
         return
-        
     try:
         request_options = {"timeout": 120}
         response = await model.generate_content_async(prompt, request_options=request_options)
@@ -247,25 +270,26 @@ async def search_in_kb(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     except Exception as e:
         await update.message.reply_text(f"An error occurred during analysis: {e}")
         return
-
     await update.message.reply_text(ai_response)
 
 
 def main() -> None:
-    # Ensure procedures file is loaded at start
     load_json_file(PROCEDURES_FILE)
     
     application = Application.builder().token(TELEGRAM_TOKEN).build()
     
+    # معالجات الأوامر (تبدأ بـ /)
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("list_stations", list_stations))
     application.add_handler(CommandHandler("add", add_or_update_station_data))
     application.add_handler(CommandHandler("log", log_natural_language))
     application.add_handler(CommandHandler("search", search_in_kb))
     
-    print("Zekoo v7.0 (Knowledge Base Expert) is running...")
+    # المعالج الجديد للهاشتاج (يبدأ بـ #)
+    application.add_handler(MessageHandler(filters.Regex(r'^#\w+'), show_station_info_by_hashtag))
+    
+    print("Zekoo v8.0 (Hashtag Expert) is running...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
     main()
-

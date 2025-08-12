@@ -16,7 +16,7 @@ MANUS_API_KEY = "YOUR_MANUS_API_KEY_HERE" # استبدل هذا بمفتاح Man
 # --- أسماء ملفات قواعد البيانات ---
 STATIONS_DATA_FILE = "stations_data.json"
 PROCEDURES_FILE = "procedures.json"
-GENERAL_EVENTS_FILE = "general_events.json" # ملف جديد للأحداث العامة
+GENERAL_EVENTS_FILE = "general_events.json"
 
 # --- إعدادات التشغيل الأساسية ---
 logging.basicConfig(
@@ -31,7 +31,6 @@ def load_data(file_path):
         return {}
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            # إذا كان الملف فارغاً، أرجع قاموساً فارغاً
             content = f.read()
             if not content:
                 return {}
@@ -45,12 +44,11 @@ def save_data(data, file_path):
 
 # --- دالة البحث عن اختصار المحطة ---
 def find_station_key(text, stations_data):
-    # يبحث عن كلمات كاملة تتطابق مع اختصارات المحطات
     words = re.findall(r'\b\w+\b', text.upper())
     for word in words:
         for key, station_info in stations_data.items():
             if station_info.get("short_name", "").upper() == word:
-                return key # يرجع اسم المحطة الكامل
+                return key
     return None
 
 # --- دوال الأوامر الأساسية ---
@@ -58,11 +56,9 @@ def find_station_key(text, stations_data):
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v7.0</b>، مساعدك الذكي.\n\n"
+        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v7.1</b>، مساعدك الذكي.\n\n"
         f"<b>لتسجيل أي معلومة (عطل، حل، تحديث):</b>\n"
-        f"استخدم أمر <code>/log</code> ثم اكتب ما تريد. إذا كانت المعلومة تخص محطة، اذكر اختصارها (مثل ATA).\n"
-        f"مثال لمحطة: <code>/log عطل في جهاز SMO بمحطة ATA</code>\n"
-        f"مثال لحدث عام: <code>/log تم تحديث نظام الطاقة في الـ CCP</code>\n\n"
+        f"استخدم أمر <code>/log</code> ثم اكتب ما تريد. إذا كانت المعلومة تخص محطة، اذكر اختصارها (مثل ATA).\n\n"
         f"<b>للبحث الذكي:</b>\n"
         f"<code>/search وصف المشكلة</code>\n\n"
         f"<b>لإضافة أو تحديث بيانات جهاز:</b>\n"
@@ -93,14 +89,12 @@ async def log_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     }
 
     if station_key:
-        # إذا تم العثور على محطة، سجل في تاريخ المحطة
         if "history" not in stations_data[station_key]:
             stations_data[station_key]["history"] = []
         stations_data[station_key]["history"].append(record)
         save_data(stations_data, STATIONS_DATA_FILE)
         await update.message.reply_text(f"تم تسجيل المعلومة بنجاح في سجل محطة '{station_key}'. شكراً لك!")
     else:
-        # إذا لم يتم العثور على محطة، سجل كحدث عام
         general_events = load_data(GENERAL_EVENTS_FILE)
         if "events" not in general_events:
             general_events["events"] = []
@@ -108,8 +102,6 @@ async def log_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
         save_data(general_events, GENERAL_EVENTS_FILE)
         await update.message.reply_text("لم أجد اختصار محطة، لذا تم تسجيل المعلومة كـ 'حدث عام'. شكراً لك!")
 
-# --- باقي الدوال (add, list_stations, search, hashtag_handler) تبقى كما هي ---
-# (تم حذفها من هنا للاختصار، لكن يجب أن تكون موجودة في ملفك)
 async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     args = context.args
     if len(args) < 3:
@@ -119,7 +111,6 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     station_name, device_name, *device_details = args
     stations_data = load_data(STATIONS_DATA_FILE)
 
-    # البحث عن اسم المحطة الكامل
     target_station_key = None
     for key, info in stations_data.items():
         if info.get("short_name", "").upper() == station_name.upper() or key.upper() == station_name.upper():
@@ -127,7 +118,6 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
             break
     
     if not target_station_key:
-        # إنشاء محطة جديدة إذا لم تكن موجودة
         stations_data[station_name] = {"short_name": station_name.upper(), "devices": {}, "history": []}
         target_station_key = station_name
 
@@ -163,9 +153,72 @@ async def list_stations(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
     await update.message.reply_html(message)
 
 async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    # هذا هو كود البحث باستخدام Manus API
-    # سيتم استبدال Gemini بـ Manus هنا
-    pass # سنقوم بتطوير هذه الدالة لاحقاً
+    user_name = update.message.from_user.first_name
+    search_query = " ".join(context.args)
+    if not search_query:
+        await update.message.reply_text("الرجاء كتابة وصف للمشكلة بعد الأمر /search.")
+        return
+
+    await update.message.reply_text(f"أهلاً بك يا {user_name}. لحظات من فضلك، أبحث في قواعد المعرفة عن أفضل حل...")
+
+    # تحميل كل قواعد البيانات
+    stations_data = load_data(STATIONS_DATA_FILE)
+    procedures = load_data(PROCEDURES_FILE)
+    general_events = load_data(GENERAL_EVENTS_FILE)
+
+    # تحويل البيانات إلى نص ليتمكن الذكاء الاصطناعي من قراءتها
+    stations_context = json.dumps(stations_data, ensure_ascii=False, indent=2)
+    procedures_context = json.dumps(procedures, ensure_ascii=False, indent=2)
+    general_events_context = json.dumps(general_events, ensure_ascii=False, indent=2)
+
+    prompt = f"""
+    أنت "المرشد الخبير Zekoo"، مساعد تقني ذكي ومحلل بيانات. مهمتك هي مساعدة المهندس "{user_name}" في حل مشكلة تقنية.
+
+    **سؤال المهندس:**
+    "{search_query}"
+
+    **لديك ثلاثة مصادر للمعلومات:**
+    1.  **قاعدة الإجراءات القياسية (Procedures):** تحتوي على حلول رسمية وموثوقة لمشاكل شائعة. هذه هي الأولوية القصوى.
+    2.  **سجل أعطال المحطات (Stations Data):** يحتوي على بيانات الأجهزة (IPs, etc.) وتاريخ الأعطال الخاص بكل محطة.
+    3.  **سجل الأحداث العامة (General Events):** يحتوي على ملاحظات وأحداث عامة لا تخص محطة معينة.
+
+    **قاعدة الإجراءات القياسية المتاحة لك:**
+    ```json
+    {procedures_context}
+    ```
+
+    **بيانات وسجل أعطال المحطات المتاح لك:**
+    ```json
+    {stations_context}
+    ```
+
+    **سجل الأحداث العامة المتاح لك:**
+    ```json
+    {general_events_context}
+    ```
+
+    **مهمتك المطلوبة بدقة (اتبع هذا الترتيب):**
+    1.  **الأولوية للإجراءات القياسية:** أولاً، تحقق إذا كان سؤال المهندس يتطابق مع أي مشكلة في "قاعدة الإجراءات القياسية".
+    2.  **إذا وجدت إجراءً مطابقاً:**
+        *   يجب أن يكون ردك هو الإجراء القياسي فقط.
+        *   ابدأ ردك بالعبارة التالية بالضبط: "بناءً على قاعدة المعرفة الرسمية، هذه المشكلة لها إجراء إصلاح قياسي."
+        *   ثم اعرض عنوان الإجراء وخطواته بشكل واضح ومرقم.
+    3.  **إذا لم تجد أي إجراء مطابق:**
+        *   انتقل إلى تحليل "سجل أعطال المحطات" و "سجل الأحداث العامة".
+        *   ابحث عن أي أعطال أو أحداث مشابهة في السجلات.
+        *   ابدأ ردك بالعبارة التالية بالضبط: "لم أجد إجراءً قياسياً لهذه المشكلة، ولكن بناءً على الخبرات السابقة، إليك التحليل:"
+        *   لخص أهم عطل سابق مشابه والحلول التي تم استنتاجها.
+        *   إذا كانت المشكلة تتعلق بجهاز معين، **يجب** أن تذكر الـ IP الخاص به وأي بيانات أخرى متاحة عنه من ملف `stations_data.json`.
+
+    **تنسيق الرد يجب أن يكون احترافياً وواضحاً.**
+    """
+    
+    # هنا يجب استدعاء Manus API
+    # بما أننا لا نملك API حقيقي، سنقوم بمحاكاة الرد
+    # في المستقبل، سيتم استبدال هذا الجزء بكود استدعاء Manus API
+    simulated_response = "تحليل ذكي من Manus... (هذه محاكاة)"
+    await update.message.reply_text(simulated_response)
+
 
 async def hashtag_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message_text = update.message.text
@@ -186,7 +239,6 @@ async def hashtag_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
         await update.message.reply_text(f"لم أجد محطة بالاختصار '{hashtag}'. استخدم /list_stations لمعرفة الاختصارات المتاحة.")
         return
 
-    # بناء الرسالة
     full_name = target_station_key
     short_name = station_info.get("short_name", "N/A")
     devices = station_info.get("devices", {})
@@ -211,7 +263,6 @@ async def hashtag_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
     if history:
         reply += "<b>📜 آخر 5 أعطال مسجلة:</b>\n"
-        # عرض آخر 5 أعطال فقط
         for record in reversed(history[-5:]):
             reply += f"  - <b>{record['date']}</b> (بواسطة: {record['user']}): {record['message']}\n"
     else:
@@ -221,7 +272,6 @@ async def hashtag_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) ->
 
 def main() -> None:
     """الدالة الرئيسية لتشغيل البوت."""
-    # التأكد من وجود الملفات عند بدء التشغيل
     load_data(STATIONS_DATA_FILE)
     load_data(PROCEDURES_FILE)
     load_data(GENERAL_EVENTS_FILE)
@@ -232,10 +282,10 @@ def main() -> None:
     application.add_handler(CommandHandler("log", log_message))
     application.add_handler(CommandHandler("add", add))
     application.add_handler(CommandHandler("list_stations", list_stations))
-    # application.add_handler(CommandHandler("search", search)) # معطل مؤقتاً
+    application.add_handler(CommandHandler("search", search)) # تم إعادة تفعيله
     application.add_handler(MessageHandler(filters.Regex(r'^#\w+'), hashtag_handler))
     
-    print("Zekoo v7.0 (المساعد الذكي) قيد التشغيل...")
+    print("Zekoo v7.1 (المساعد الذكي) قيد التشغيل...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":

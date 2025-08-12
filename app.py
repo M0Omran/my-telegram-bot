@@ -5,14 +5,12 @@ import datetime
 import os
 import json
 import re
-import requests # استيراد المكتبة الجديدة
 
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
 
-# --- الإعدادات الرئيسية (تم التحديث النهائي) ---
+# --- الإعدادات الرئيسية ---
 TELEGRAM_TOKEN = "7986947716:AAF3L0zIrXfsNWOvsXqMH3liEYBx8asrqs8"
-# لا حاجة لمفتاح API هنا لأننا سنستخدم واجهة عامة مؤقتاً
 
 # --- أسماء ملفات قواعد البيانات ---
 STATIONS_DATA_FILE = "stations_data.json"
@@ -26,16 +24,13 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.WARNING)
 logger = logging.getLogger(__name__)
 
-# --- دوال مساعدة للتعامل مع ملفات JSON ---
+# --- دوال مساعدة ---
 def load_data(file_path):
-    if not os.path.exists(file_path):
-        return {}
+    if not os.path.exists(file_path): return {}
     try:
         with open(file_path, "r", encoding="utf-8") as f:
             content = f.read()
-            if not content:
-                return {}
-            return json.loads(content)
+            return json.loads(content) if content else {}
     except (json.JSONDecodeError, FileNotFoundError):
         return {}
 
@@ -43,7 +38,6 @@ def save_data(data, file_path):
     with open(file_path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=4)
 
-# --- دالة البحث عن اختصار المحطة ---
 def find_station_key(text, stations_data):
     words = re.findall(r'\b\w+\b', text.upper())
     for word in words:
@@ -52,16 +46,54 @@ def find_station_key(text, stations_data):
                 return key
     return None
 
-# --- دوال الأوامر الأساسية ---
+# --- العقل التحليلي المدمج (بديل الـ API) ---
+def local_manus_analysis(prompt, search_query, stations_data, procedures, general_events):
+    # 1. البحث عن إجراء قياسي (الأولوية القصوى)
+    for proc_key, proc_details in procedures.items():
+        # البحث في العنوان والكلمات المفتاحية للإجراء
+        search_area = proc_details.get('title', '') + ' ' + ' '.join(proc_details.get('keywords', []))
+        if any(word.lower() in search_area.lower() for word in search_query.split()):
+            response = f"بناءً على قاعدة المعرفة الرسمية، هذه المشكلة لها إجراء إصلاح قياسي.\n\n"
+            response += f"<b>📜 {proc_details.get('title', 'بلا عنوان')}</b>\n"
+            for i, step in enumerate(proc_details.get('steps', []), 1):
+                response += f"{i}. {step}\n"
+            return response
 
+    # 2. إذا لم يوجد إجراء، ابحث في سجلات الأعطال
+    response = "لم أجد إجراءً قياسياً لهذه المشكلة، ولكن بناءً على الخبرات السابقة، إليك التحليل:\n\n"
+    found_info = False
+    
+    # البحث في تاريخ المحطات
+    for station_name, station_info in stations_data.items():
+        if station_name.lower() in search_query.lower() or station_info.get("short_name", "").lower() in search_query.lower():
+            history = station_info.get("history", [])
+            if history:
+                found_info = True
+                response += f"<b>في محطة {station_name}:</b>\n"
+                # عرض آخر حدثين مرتبطين
+                for record in reversed(history[-2:]):
+                    response += f"- بتاريخ {record['date']}، سجل المستخدم '{record['user']}' الآتي: '{record['message']}'\n"
+                response += "\n"
+
+    # البحث في الأحداث العامة
+    events = general_events.get("events", [])
+    for event in events:
+        if any(word.lower() in event.get('message', '').lower() for word in search_query.split()):
+            found_info = True
+            response += f"<b>حدث عام مسجل قد يكون ذا صلة:</b>\n"
+            response += f"- بتاريخ {event['date']}، سجل المستخدم '{event['user']}' الآتي: '{event['message']}'\n\n"
+
+    if not found_info:
+        response = "عذراً، لم أجد أي معلومات ذات صلة في قاعدة البيانات الحالية حول هذا الموضوع."
+
+    return response
+
+# --- دوال الأوامر ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v8.0 (متصل بـ Manus)</b>، مساعدك الذكي.\n\n"
-        f"<b>لتسجيل أي معلومة:</b> <code>/log</code>\n"
-        f"<b>للبحث الذكي:</b> <code>/search</code>\n"
-        f"<b>لإضافة بيانات:</b> <code>/add</code>\n"
-        f"<b>لعرض المحطات:</b> <code>/list_stations</code> أو <code>#اختصار</code>"
+        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v9.0 (بعقل مدمج)</b>، مساعدك الذكي.\n\n"
+        f"أنا الآن أعمل بشكل مستقل تماماً. جرب أمر <code>/search</code> لترى التحليل الفوري."
     )
 
 async def log_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -70,24 +102,39 @@ async def log_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> Non
     if not user_message:
         await update.message.reply_text("الرجاء كتابة المعلومة بعد أمر /log.")
         return
-    await update.message.reply_text("فهمت. لحظات من فضلك، أقوم بتحليل وتخزين المعلومة...")
+    await update.message.reply_text("فهمت. لحظات من فضلك، أقوم بتخزين المعلومة...")
     stations_data = load_data(STATIONS_DATA_FILE)
     station_key = find_station_key(user_message, stations_data)
     record = {"date": datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S"), "user": user_name, "message": user_message}
     if station_key:
-        if "history" not in stations_data[station_key]:
-            stations_data[station_key]["history"] = []
-        stations_data[station_key]["history"].append(record)
+        stations_data.setdefault(station_key, {}).setdefault("history", []).append(record)
         save_data(stations_data, STATIONS_DATA_FILE)
         await update.message.reply_text(f"تم تسجيل المعلومة بنجاح في سجل محطة '{station_key}'.")
     else:
         general_events = load_data(GENERAL_EVENTS_FILE)
-        if "events" not in general_events:
-            general_events["events"] = []
-        general_events["events"].append(record)
+        general_events.setdefault("events", []).append(record)
         save_data(general_events, GENERAL_EVENTS_FILE)
         await update.message.reply_text("تم تسجيل المعلومة كـ 'حدث عام'.")
 
+async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    user_name = update.message.from_user.first_name
+    search_query = " ".join(context.args)
+    if not search_query:
+        await update.message.reply_text("الرجاء كتابة وصف للمشكلة بعد الأمر /search.")
+        return
+
+    await update.message.reply_text(f"أهلاً بك يا {user_name}. لحظات من فضلك، أقوم بالتحليل الفوري...")
+
+    stations_data = load_data(STATIONS_DATA_FILE)
+    procedures = load_data(PROCEDURES_FILE)
+    general_events = load_data(GENERAL_EVENTS_FILE)
+
+    # استخدام العقل التحليلي المدمج
+    analysis_result = local_manus_analysis(None, search_query, stations_data, procedures, general_events)
+    
+    await update.message.reply_html(analysis_result)
+
+# --- باقي الدوال (add, list_stations, hashtag_handler) تبقى كما هي ---
 async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     args = context.args
     if len(args) < 3:
@@ -103,14 +150,15 @@ async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not target_station_key:
         stations_data[station_name] = {"short_name": station_name.upper(), "devices": {}, "history": []}
         target_station_key = station_name
-    if "devices" not in stations_data[target_station_key]:
-        stations_data[target_station_key]["devices"] = {}
-    if device_name.upper() not in stations_data[target_station_key]["devices"]:
-        stations_data[target_station_key]["devices"][device_name.upper()] = {}
+    
+    devices = stations_data[target_station_key].setdefault("devices", {})
+    device = devices.setdefault(device_name.upper(), {})
+    
     for detail in device_details:
         if '=' in detail:
             key, value = detail.split('=', 1)
-            stations_data[target_station_key]["devices"][device_name.upper()][key.lower()] = value
+            device[key.lower()] = value
+            
     save_data(stations_data, STATIONS_DATA_FILE)
     await update.message.reply_text(f"تم إضافة/تحديث بيانات جهاز '{device_name.upper()}' في محطة '{target_station_key}'.")
 
@@ -126,52 +174,6 @@ async def list_stations(update: Update, context: ContextTypes.DEFAULT_TYPE) -> N
         history_count = len(data.get('history', []))
         message += f"• <b>{name} ({short_name})</b> | أجهزة: {devices_count} | سجل: {history_count}\n"
     await update.message.reply_html(message)
-
-async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    user_name = update.message.from_user.first_name
-    search_query = " ".join(context.args)
-    if not search_query:
-        await update.message.reply_text("الرجاء كتابة وصف للمشكلة بعد الأمر /search.")
-        return
-
-    await update.message.reply_text(f"أهلاً بك يا {user_name}. لحظات من فضلك، أقوم بتحليل البيانات لأجد لك أفضل حل...")
-
-    stations_data = load_data(STATIONS_DATA_FILE)
-    procedures = load_data(PROCEDURES_FILE)
-    general_events = load_data(GENERAL_EVENTS_FILE)
-
-    stations_context = json.dumps(stations_data, ensure_ascii=False, indent=2)
-    procedures_context = json.dumps(procedures, ensure_ascii=False, indent=2)
-    general_events_context = json.dumps(general_events, ensure_ascii=False, indent=2)
-
-    prompt = f"""
-    أنت "المرشد الخبير Zekoo"، مساعد تقني ذكي ومحلل بيانات. مهمتك هي مساعدة المهندس "{user_name}" في حل مشكلة تقنية.
-    **سؤال المهندس:** "{search_query}"
-    **لديك ثلاثة مصادر للمعلومات:**
-    1. **قاعدة الإجراءات القياسية (Procedures):** الأولوية القصوى.
-    2. **سجل أعطال المحطات (Stations Data):** يحتوي على بيانات الأجهزة (IPs) وتاريخ الأعطال.
-    3. **سجل الأحداث العامة (General Events):** ملاحظات عامة.
-    **قاعدة الإجراءات:**\n{procedures_context}
-    **بيانات المحطات:**\n{stations_context}
-    **الأحداث العامة:**\n{general_events_context}
-    **مهمتك المطلوبة بدقة:**
-    1. **الأولوية للإجراءات:** ابحث أولاً في "قاعدة الإجراءات". إذا وجدت تطابقاً، اعرضه فقط.
-    2. **إذا لم تجد:** حلل السجلات الأخرى وقدم ملخصاً للخبرات السابقة. إذا كانت المشكلة تخص جهازاً، **يجب** أن تذكر الـ IP الخاص به.
-    """
-    
-    # --- استدعاء Manus API الحقيقي ---
-    api_url = "https://manus-api-knower-dev.up.railway.app/ask"
-    payload = {"question": prompt}
-    
-    try:
-        response = requests.post(api_url, json=payload, timeout=60)
-        response.raise_for_status()  # سيرفع استثناء لأكواد الخطأ (4xx or 5xx)
-        api_response = response.json().get("answer", "لم أتمكن من الحصول على إجابة.")
-    except requests.exceptions.RequestException as e:
-        logger.error(f"خطأ في الاتصال بـ Manus API: {e}")
-        api_response = "عذراً، واجهت مشكلة في الاتصال بخادم الذكاء الاصطناعي. يرجى المحاولة مرة أخرى لاحقاً."
-    
-    await update.message.reply_text(api_response)
 
 async def hashtag_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     message_text = update.message.text
@@ -218,7 +220,7 @@ def main() -> None:
     application.add_handler(CommandHandler("list_stations", list_stations))
     application.add_handler(CommandHandler("search", search))
     application.add_handler(MessageHandler(filters.Regex(r'^#\w+'), hashtag_handler))
-    print("Zekoo v8.0 (متصل بـ Manus) قيد التشغيل...")
+    print("Zekoo v9.0 (بعقل مدمج) قيد التشغيل...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":

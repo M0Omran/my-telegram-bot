@@ -46,31 +46,35 @@ def find_station_key(text, stations_data):
                 return key
     return None
 
-# --- العقل التحليلي المدمج (بديل الـ API) ---
+# --- العقل التحليلي المدمج (مع تنسيق محسن للإجابات) ---
 def local_manus_analysis(prompt, search_query, stations_data, procedures, general_events):
     # 1. البحث عن إجراء قياسي (الأولوية القصوى)
     for proc_key, proc_details in procedures.items():
-        # البحث في العنوان والكلمات المفتاحية للإجراء
         search_area = proc_details.get('title', '') + ' ' + ' '.join(proc_details.get('keywords', []))
         if any(word.lower() in search_area.lower() for word in search_query.split()):
             response = f"بناءً على قاعدة المعرفة الرسمية، هذه المشكلة لها إجراء إصلاح قياسي.\n\n"
-            response += f"<b>📜 {proc_details.get('title', 'بلا عنوان')}</b>\n"
-            for i, step in enumerate(proc_details.get('steps', []), 1):
-                response += f"{i}. {step}\n"
+            response += f"<b>📜 {proc_details.get('title', 'بلا عنوان')}</b>\n\n"
+            # --- التحسين هنا ---
+            for step_data in proc_details.get('steps', []):
+                step_title = step_data.get('title', 'خطوة')
+                step_details = step_data.get('details', 'لا توجد تفاصيل.')
+                response += f"<b>- {step_title}:</b> {step_details}\n"
             return response
 
     # 2. إذا لم يوجد إجراء، ابحث في سجلات الأعطال
     response = "لم أجد إجراءً قياسياً لهذه المشكلة، ولكن بناءً على الخبرات السابقة، إليك التحليل:\n\n"
     found_info = False
     
+    search_words = set(search_query.lower().split())
+    
     # البحث في تاريخ المحطات
     for station_name, station_info in stations_data.items():
-        if station_name.lower() in search_query.lower() or station_info.get("short_name", "").lower() in search_query.lower():
+        station_aliases = {station_name.lower(), station_info.get("short_name", "").lower()}
+        if search_words.intersection(station_aliases):
             history = station_info.get("history", [])
             if history:
                 found_info = True
                 response += f"<b>في محطة {station_name}:</b>\n"
-                # عرض آخر حدثين مرتبطين
                 for record in reversed(history[-2:]):
                     response += f"- بتاريخ {record['date']}، سجل المستخدم '{record['user']}' الآتي: '{record['message']}'\n"
                 response += "\n"
@@ -88,11 +92,11 @@ def local_manus_analysis(prompt, search_query, stations_data, procedures, genera
 
     return response
 
-# --- دوال الأوامر ---
+# --- دوال الأوامر (تبقى كما هي) ---
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     user = update.effective_user
     await update.message.reply_html(
-        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v9.0 (بعقل مدمج)</b>، مساعدك الذكي.\n\n"
+        f"مرحباً {user.mention_html()}! أنا <b>Zekoo v9.1 (بعقل مدمج وعرض محسن)</b>، مساعدك الذكي.\n\n"
         f"أنا الآن أعمل بشكل مستقل تماماً. جرب أمر <code>/search</code> لترى التحليل الفوري."
     )
 
@@ -129,12 +133,10 @@ async def search(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     procedures = load_data(PROCEDURES_FILE)
     general_events = load_data(GENERAL_EVENTS_FILE)
 
-    # استخدام العقل التحليلي المدمج
     analysis_result = local_manus_analysis(None, search_query, stations_data, procedures, general_events)
     
     await update.message.reply_html(analysis_result)
 
-# --- باقي الدوال (add, list_stations, hashtag_handler) تبقى كما هي ---
 async def add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     args = context.args
     if len(args) < 3:
@@ -220,7 +222,7 @@ def main() -> None:
     application.add_handler(CommandHandler("list_stations", list_stations))
     application.add_handler(CommandHandler("search", search))
     application.add_handler(MessageHandler(filters.Regex(r'^#\w+'), hashtag_handler))
-    print("Zekoo v9.0 (بعقل مدمج) قيد التشغيل...")
+    print("Zekoo v9.1 (بعقل مدمج وعرض محسن) قيد التشغيل...")
     application.run_polling(allowed_updates=Update.ALL_TYPES)
 
 if __name__ == "__main__":
